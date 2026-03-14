@@ -18,9 +18,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </button>
         <div className="flex items-center gap-2">
           <div className="h-6 w-6 bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-[11px]">A</span>
+            <span className="text-primary-foreground font-bold text-[11px]">S</span>
           </div>
-          <span className="font-semibold text-sm tracking-tight">Agentis Studio</span>
+          <span className="font-semibold text-sm tracking-tight">Skillr</span>
         </div>
       </div>
 

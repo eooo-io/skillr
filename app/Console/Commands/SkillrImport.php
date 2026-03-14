@@ -6,15 +6,15 @@ use App\Models\Project;
 use App\Services\ProviderImportService;
 use Illuminate\Console\Command;
 
-class AgentisImport extends Command
+class SkillrImport extends Command
 {
-    protected $signature = 'agentis:import
+    protected $signature = 'skillr:import
                             {path : Path to project directory to import from}
-                            {--into= : Target Agentis project name or ID}
+                            {--into= : Target Skillr project name or ID}
                             {--provider= : Import only from a specific provider}
                             {--dry-run : Show what would be imported without making changes}';
 
-    protected $description = 'Reverse-sync: import existing provider config files into Agentis skills';
+    protected $description = 'Reverse-sync: import existing provider config files into Skillr skills';
 
     public function handle(ProviderImportService $importService): int
     {

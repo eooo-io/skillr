@@ -1,16 +1,16 @@
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
-  title: 'Agentis Studio',
+  title: 'Skillr',
   description: 'Universal AI skill/agent configuration manager for multi-provider development workflows.',
-  base: '/agentis-studio/',
+  base: '/skillr/',
 
   ignoreDeadLinks: [
     /localhost/,
   ],
 
   head: [
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/agentis-studio/logo.svg' }],
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/skillr/logo.svg' }],
   ],
 
   themeConfig: {
@@ -23,7 +23,7 @@ export default defineConfig({
         text: 'v1.0.0',
         items: [
           { text: 'Changelog', link: '/changelog' },
-          { text: 'GitHub', link: 'https://github.com/eooo-io/agentis-studio' },
+          { text: 'GitHub', link: 'https://github.com/eooo-io/skillr' },
         ],
       },
     ],
@@ -101,7 +101,7 @@ export default defineConfig({
     },
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/eooo-io/agentis-studio' },
+      { icon: 'github', link: 'https://github.com/eooo-io/skillr' },
     ],
 
     search: {

@@ -14,21 +14,21 @@ services:
     command: >
       sh -c "php artisan serve --host=0.0.0.0 --port=8000 --env=docker"
     networks:
-      - agentis
+      - skillr
 
   mariadb:
     image: mariadb:11
     environment:
       MARIADB_ROOT_PASSWORD: root
-      MARIADB_DATABASE: agentis
-      MARIADB_USER: agentis
+      MARIADB_DATABASE: skillr
+      MARIADB_USER: skillr
       MARIADB_PASSWORD: secret
     volumes:
       - mariadb_data:/var/lib/mysql
     ports:
       - "3306:3306"
     networks:
-      - agentis
+      - skillr
 
 volumes:
   mariadb_data:
@@ -40,5 +40,5 @@ volumes:
       device: ${PROJECTS_HOST_PATH:-.}
 
 networks:
-  agentis:
+  skillr:
     driver: bridge

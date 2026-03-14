@@ -1,6 +1,6 @@
 # Getting Started
 
-Agentis Studio runs as a local development tool. You can set it up with Docker (recommended) or run the services directly on your machine.
+Skillr runs as a local development tool. You can set it up with Docker (recommended) or run the services directly on your machine.
 
 ## Prerequisites
 
@@ -10,12 +10,12 @@ Agentis Studio runs as a local development tool. You can set it up with Docker (
 ## Installation with Docker
 
 ```bash
-git clone https://github.com/eooo-io/agentis-studio.git
-cd agentis-studio
+git clone https://github.com/eooo-io/skillr.git
+cd skillr
 cp .env.example .env
 ```
 
-Edit `.env` and set `PROJECTS_HOST_PATH` to the directory on your machine that contains the projects you want to manage. This path gets mounted into the PHP container so Agentis Studio can read and write `.agentis/` directories.
+Edit `.env` and set `PROJECTS_HOST_PATH` to the directory on your machine that contains the projects you want to manage. This path gets mounted into the PHP container so Skillr can read and write `.skillr/` directories.
 
 ```bash
 make build
@@ -34,8 +34,8 @@ That's it. Docker runs PHP and MariaDB, Vite runs locally.
 ## Installation without Docker
 
 ```bash
-git clone https://github.com/eooo-io/agentis-studio.git
-cd agentis-studio
+git clone https://github.com/eooo-io/skillr.git
+cd skillr
 composer install
 cp .env.example .env
 php artisan key:generate
@@ -46,7 +46,7 @@ Configure your database connection in `.env`:
 ```env
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=agentis_studio
+DB_DATABASE=skillr
 DB_USERNAME=root
 DB_PASSWORD=secret
 ```
@@ -84,13 +84,13 @@ Open the Filament Admin at http://localhost:8000/admin and create a new project.
 The path must be accessible from within the PHP container. When using Docker, it is relative to the `PROJECTS_HOST_PATH` mount defined in `.env`.
 :::
 
-### 2. Scaffold the `.agentis/` directory
+### 2. Scaffold the `.skillr/` directory
 
-If your project does not already have an `.agentis/` directory, Agentis Studio creates one the first time you add a skill. The directory structure looks like:
+If your project does not already have an `.skillr/` directory, Skillr creates one the first time you add a skill. The directory structure looks like:
 
 ```
 my-app/
-  .agentis/
+  .skillr/
     skills/
       my-first-skill.md
       another-skill.md
@@ -98,9 +98,9 @@ my-app/
 
 ### 3. Scan existing skills
 
-If you already have `.agentis/skills/*.md` files (maybe from a teammate or a bundle import), click **Scan** on the project card. This runs a `ProjectScanJob` that:
+If you already have `.skillr/skills/*.md` files (maybe from a teammate or a bundle import), click **Scan** on the project card. This runs a `ProjectScanJob` that:
 
-- Reads every `.md` file in `.agentis/skills/`
+- Reads every `.md` file in `.skillr/skills/`
 - Parses YAML frontmatter and Markdown body
 - Upserts skills into the database (matched by slug)
 - Creates version 1 snapshots for new skills

@@ -1,6 +1,6 @@
 # Version History
 
-Every time you save a skill, Agentis Studio creates an automatic version snapshot. This gives you a full history of changes with the ability to compare and restore any previous version.
+Every time you save a skill, Skillr creates an automatic version snapshot. This gives you a full history of changes with the ability to compare and restore any previous version.
 
 ## How Versioning Works
 
@@ -32,7 +32,7 @@ The diff is read-only -- you cannot edit directly in the diff view.
 Each version has a **Restore** button. Clicking it opens a confirmation dialog. Confirming the restore:
 
 1. Sets the skill's body and frontmatter to match the selected version
-2. Writes the restored content to the `.agentis/skills/{slug}.md` file
+2. Writes the restored content to the `.skillr/skills/{slug}.md` file
 3. Creates a **new** version snapshot (the restore itself becomes a new version)
 4. Reloads the skill and version list in the editor
 
@@ -42,7 +42,7 @@ Restoring does not delete any versions. The restored state becomes the latest ve
 
 ## Versions and Provider Sync
 
-Versions are internal to Agentis Studio. Provider sync always uses the current (latest) version of each skill. If you need to sync an older version, restore it first, then run the sync.
+Versions are internal to Skillr. Provider sync always uses the current (latest) version of each skill. If you need to sync an older version, restore it first, then run the sync.
 
 ## API Endpoints
 

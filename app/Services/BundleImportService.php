@@ -12,7 +12,7 @@ class BundleImportService
 {
     public function __construct(
         protected SkillFileParser $parser,
-        protected AgentisManifestService $manifestService,
+        protected SkillrManifestService $manifestService,
     ) {}
 
     /**

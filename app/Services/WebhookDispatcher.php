@@ -38,12 +38,12 @@ class WebhookDispatcher
 
         $headers = [
             'Content-Type' => 'application/json',
-            'X-Agentis-Event' => $event,
+            'X-Skillr-Event' => $event,
         ];
 
         if ($webhook->secret) {
             $signature = hash_hmac('sha256', json_encode($body), $webhook->secret);
-            $headers['X-Agentis-Signature'] = $signature;
+            $headers['X-Skillr-Signature'] = $signature;
         }
 
         $start = microtime(true);

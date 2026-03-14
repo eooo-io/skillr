@@ -22,7 +22,7 @@ class BundleExportService
      */
     public function exportZip(Project $project, array $skillIds, array $agentIds, string $contentFormat = 'markdown'): string
     {
-        $tempPath = tempnam(sys_get_temp_dir(), 'agentis_bundle_') . '.zip';
+        $tempPath = tempnam(sys_get_temp_dir(), 'skillr_bundle_') . '.zip';
         $zip = new ZipArchive();
         $zip->open($tempPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
 

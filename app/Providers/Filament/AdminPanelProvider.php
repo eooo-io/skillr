@@ -27,7 +27,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-            ->brandName('Agentis Studio')
+            ->brandName('Skillr')
             ->colors([
                 'primary' => Color::Amber,
             ])

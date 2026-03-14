@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Models\Project;
 use Illuminate\Support\Facades\File;
 
-class AgentisManifestService
+class SkillrManifestService
 {
     public function __construct(
         protected SkillFileParser $parser,
@@ -18,16 +18,16 @@ class AgentisManifestService
      */
     public function scanProject(string $absolutePath): array
     {
-        $agentisDir = rtrim($absolutePath, '/') . '/.agentis';
+        $skillrDir = rtrim($absolutePath, '/') . '/.skillr';
         $manifest = null;
         $skills = [];
 
-        $manifestPath = $agentisDir . '/manifest.json';
+        $manifestPath = $skillrDir . '/manifest.json';
         if (File::exists($manifestPath)) {
             $manifest = json_decode(File::get($manifestPath), true);
         }
 
-        $skillsDir = $agentisDir . '/skills';
+        $skillsDir = $skillrDir . '/skills';
         if (File::isDirectory($skillsDir)) {
             $files = File::glob($skillsDir . '/*.md');
 
@@ -45,7 +45,7 @@ class AgentisManifestService
     }
 
     /**
-     * Write the .agentis/manifest.json from current DB state.
+     * Write the .skillr/manifest.json from current DB state.
      */
     public function writeManifest(Project $project): void
     {
@@ -62,19 +62,19 @@ class AgentisManifestService
             'synced_at' => $project->synced_at?->toIso8601String(),
         ];
 
-        $dir = rtrim($project->resolved_path, '/') . '/.agentis';
+        $dir = rtrim($project->resolved_path, '/') . '/.skillr';
         File::ensureDirectoryExists($dir);
         File::put($dir . '/manifest.json', json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
     }
 
     /**
-     * Scaffold a new .agentis/ directory structure.
+     * Scaffold a new .skillr/ directory structure.
      */
     public function scaffoldProject(string $absolutePath, string $name): void
     {
-        $agentisDir = rtrim($absolutePath, '/') . '/.agentis';
+        $skillrDir = rtrim($absolutePath, '/') . '/.skillr';
 
-        File::ensureDirectoryExists($agentisDir . '/skills');
+        File::ensureDirectoryExists($skillrDir . '/skills');
 
         $manifest = [
             'id' => (string) \Illuminate\Support\Str::uuid(),
@@ -87,27 +87,27 @@ class AgentisManifestService
             'synced_at' => null,
         ];
 
-        File::put($agentisDir . '/manifest.json', json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
+        File::put($skillrDir . '/manifest.json', json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
     }
 
     /**
-     * Write a skill file to the project's .agentis/skills/ directory.
+     * Write a skill file to the project's .skillr/skills/ directory.
      */
     public function writeSkillFile(string $projectPath, array $frontmatter, string $body): void
     {
         $slug = $frontmatter['id'] ?? \Illuminate\Support\Str::slug($frontmatter['name'] ?? 'untitled');
-        $dir = rtrim($projectPath, '/') . '/.agentis/skills';
+        $dir = rtrim($projectPath, '/') . '/.skillr/skills';
 
         File::ensureDirectoryExists($dir);
         File::put($dir . '/' . $slug . '.md', $this->parser->renderFile($frontmatter, $body));
     }
 
     /**
-     * Delete a skill file from the project's .agentis/skills/ directory.
+     * Delete a skill file from the project's .skillr/skills/ directory.
      */
     public function deleteSkillFile(string $projectPath, string $slug): void
     {
-        $file = rtrim($projectPath, '/') . '/.agentis/skills/' . $slug . '.md';
+        $file = rtrim($projectPath, '/') . '/.skillr/skills/' . $slug . '.md';
 
         if (File::exists($file)) {
             File::delete($file);
@@ -115,10 +115,10 @@ class AgentisManifestService
     }
 
     /**
-     * Check if a skill file exists in the project's .agentis/skills/ directory.
+     * Check if a skill file exists in the project's .skillr/skills/ directory.
      */
     public function skillExists(string $projectPath, string $slug): bool
     {
-        return File::exists(rtrim($projectPath, '/') . '/.agentis/skills/' . $slug . '.md');
+        return File::exists(rtrim($projectPath, '/') . '/.skillr/skills/' . $slug . '.md');
     }
 }

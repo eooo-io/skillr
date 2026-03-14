@@ -2,7 +2,7 @@
 layout: home
 
 hero:
-  name: Agentis Studio
+  name: Skillr
   text: Universal AI Skill Manager
   tagline: Define, edit, and sync reusable AI skills across every provider from a single source of truth.
   actions:
@@ -11,7 +11,7 @@ hero:
       link: /guide/getting-started
     - theme: alt
       text: View on GitHub
-      link: https://github.com/eooo-io/agentis-studio
+      link: https://github.com/eooo-io/skillr
 
 features:
   - title: Provider-Agnostic Skills

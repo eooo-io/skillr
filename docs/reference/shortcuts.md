@@ -1,6 +1,6 @@
 # Keyboard Shortcuts
 
-Agentis Studio supports keyboard shortcuts throughout the React SPA for common actions.
+Skillr supports keyboard shortcuts throughout the React SPA for common actions.
 
 ## Global Shortcuts
 

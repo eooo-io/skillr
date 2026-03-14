@@ -1,12 +1,12 @@
 # Skill File Format
 
-Skills are stored as Markdown files with YAML frontmatter in `.agentis/skills/`. This page is the complete specification.
+Skills are stored as Markdown files with YAML frontmatter in `.skillr/skills/`. This page is the complete specification.
 
 ## File Location
 
 ```
 project-root/
-  .agentis/
+  .skillr/
     skills/
       my-skill.md
 ```
@@ -105,7 +105,7 @@ The body supports:
 
 ## Parsing
 
-Agentis Studio uses `SkillFileParser` (built on `symfony/yaml`) to parse skill files. The parser:
+Skillr uses `SkillFileParser` (built on `symfony/yaml`) to parse skill files. The parser:
 
 1. Extracts the YAML frontmatter between the `---` delimiters
 2. Validates that required fields (`id`, `name`) are present

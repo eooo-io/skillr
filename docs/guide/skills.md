@@ -1,6 +1,6 @@
 # Creating Skills
 
-Skills are the core unit in Agentis Studio. Each skill is a reusable AI prompt stored as a Markdown file with YAML frontmatter.
+Skills are the core unit in Skillr. Each skill is a reusable AI prompt stored as a Markdown file with YAML frontmatter.
 
 ## The Skill Editor
 
@@ -80,7 +80,7 @@ If your skill is very long, consider splitting it into smaller skills and using 
 Press `Ctrl+S` (or `Cmd+S` on macOS) to save. Every save:
 
 1. Updates the skill in the database
-2. Writes the `.agentis/skills/{slug}.md` file to disk
+2. Writes the `.skillr/skills/{slug}.md` file to disk
 3. Creates a new [version snapshot](./versions)
 4. Optionally [auto-commits to git](./git-integration) if enabled
 
@@ -92,7 +92,7 @@ Click **Duplicate** in the action bar to clone a skill. The duplicate gets a new
 
 ## Deleting a Skill
 
-Click **Delete** in the action bar. This removes the skill from the database and deletes the `.agentis/skills/{slug}.md` file from disk. Deletion is permanent -- there is no trash or soft delete.
+Click **Delete** in the action bar. This removes the skill from the database and deletes the `.skillr/skills/{slug}.md` file from disk. Deletion is permanent -- there is no trash or soft delete.
 
 ::: warning
 Deleting a skill also removes all its version history. If you might want the skill back later, consider exporting it as a [bundle](./bundles) first.

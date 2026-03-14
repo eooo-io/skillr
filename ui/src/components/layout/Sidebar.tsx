@@ -65,11 +65,11 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
       <div className="px-5 py-4 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2.5 group" onClick={onClose}>
           <div className="h-8 w-8 bg-primary flex items-center justify-center elevation-1 group-hover:elevation-2 transition-shadow">
-            <span className="text-primary-foreground font-bold text-sm">A</span>
+            <span className="text-primary-foreground font-bold text-sm">S</span>
           </div>
           <div>
             <span className="font-semibold text-[15px] text-sidebar-foreground tracking-tight">
-              Agentis Studio
+              Skillr
             </span>
           </div>
         </Link>

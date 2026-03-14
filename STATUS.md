@@ -1,10 +1,10 @@
-# Agentis Studio — Project Status
+# Skillr — Project Status
 
 > Last updated: 2026-03-12 | Commit: `aa7b530` | 38 commits on `main`
 
 ## Overview
 
-Agentis Studio is a universal AI skill/agent configuration manager. Developers define reusable AI skills (prompt + config) in a provider-agnostic format under `.agentis/`, then sync them to any supported AI provider's native config format.
+Skillr is a universal AI skill/agent configuration manager. Developers define reusable AI skills (prompt + config) in a provider-agnostic format under `.skillr/`, then sync them to any supported AI provider's native config format.
 
 **Stack:** Laravel 12 (PHP 8.4) + Filament 3 + React 19 + TypeScript + Vite 7 + Tailwind v4 + shadcn/ui + Monaco Editor + D3.js + MariaDB 11 + Docker
 
@@ -31,7 +31,7 @@ Agentis Studio is a universal AI skill/agent configuration manager. Developers d
 ## Implemented Features
 
 ### Core Engine
-- [x] YAML frontmatter + Markdown skill file format (`.agentis/skills/`)
+- [x] YAML frontmatter + Markdown skill file format (`.skillr/skills/`)
 - [x] Skill CRUD with slug auto-generation, unique per project
 - [x] Version snapshots on every skill save
 - [x] Version history with Monaco diff viewer
@@ -56,7 +56,7 @@ Agentis Studio is a universal AI skill/agent configuration manager. Developers d
 
 ### Reverse-Sync Import
 - [x] Auto-detect provider config files in a project directory
-- [x] Parse existing provider configs back into Agentis skill format
+- [x] Parse existing provider configs back into Skillr skill format
 - [x] Supports all 6 original providers (Claude, Cursor, Copilot, Windsurf, Cline, OpenAI)
 - [x] Import UI tab in project detail
 
@@ -73,10 +73,10 @@ Agentis Studio is a universal AI skill/agent configuration manager. Developers d
 - [x] Playground mode (freeform prompt testing)
 
 ### CLI Tools (Artisan Commands)
-- [x] `agentis:list` — List all projects and their skills
-- [x] `agentis:scan` — Scan a project directory for skill files
-- [x] `agentis:sync` — Sync skills to provider configs from terminal
-- [x] `agentis:import` — Import skills from provider config files
+- [x] `skillr:list` — List all projects and their skills
+- [x] `skillr:scan` — Scan a project directory for skill files
+- [x] `skillr:sync` — Sync skills to provider configs from terminal
+- [x] `skillr:import` — Import skills from provider config files
 
 ### D3.js Visualization
 - [x] **Full Project Overview** — Force-directed graph of projects, skills, agents, providers
@@ -173,7 +173,7 @@ Agentis Studio is a universal AI skill/agent configuration manager. Developers d
 │  Eloquent Models (22)   Provider Drivers (7)     │
 │       │                    │                     │
 │       ▼                    ▼                     │
-│   MariaDB            .agentis/ files             │
+│   MariaDB            .skillr/ files             │
 │                            │                     │
 │                            ▼                     │
 │                   Provider Config Files           │

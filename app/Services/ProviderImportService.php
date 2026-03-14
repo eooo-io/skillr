@@ -98,8 +98,8 @@ class ProviderImportService
                     'saved_at' => now(),
                 ]);
 
-                // Write to .agentis/skills/
-                app(AgentisManifestService::class)->writeSkillFile($project, $skill);
+                // Write to .skillr/skills/
+                app(SkillrManifestService::class)->writeSkillFile($project, $skill);
 
                 $existingSlugs[] = $slug;
                 $created++;
