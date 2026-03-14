@@ -1,0 +1,44 @@
+services:
+  php:
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/var/www/app
+      - ./docker/php/php.ini:/usr/local/etc/php/conf.d/custom.ini
+      - projects:/projects
+    depends_on:
+      - mariadb
+    command: >
+      sh -c "php artisan serve --host=0.0.0.0 --port=8000 --env=docker"
+    networks:
+      - agentis
+
+  mariadb:
+    image: mariadb:11
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: agentis
+      MARIADB_USER: agentis
+      MARIADB_PASSWORD: secret
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - agentis
+
+volumes:
+  mariadb_data:
+  projects:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PROJECTS_HOST_PATH:-.}
+
+networks:
+  agentis:
+    driver: bridge
