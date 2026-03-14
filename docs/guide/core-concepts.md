@@ -1,12 +1,12 @@
 # Core Concepts
 
-## The `.agentis/` Directory
+## The `.skillr/` Directory
 
-Every project managed by Agentis Studio has a `.agentis/` directory at its root. This directory is the **single source of truth** for all AI skills in that project.
+Every project managed by Skillr has a `.skillr/` directory at its root. This directory is the **single source of truth** for all AI skills in that project.
 
 ```
 my-project/
-  .agentis/
+  .skillr/
     skills/
       code-review.md
       testing-strategy.md
@@ -15,7 +15,7 @@ my-project/
 
 Skills are stored as plain Markdown files with YAML frontmatter. They are human-readable, version-controllable, and portable across machines.
 
-All provider-specific config files (`.claude/CLAUDE.md`, `.cursor/rules/*.mdc`, etc.) are **derived outputs**. You never edit them directly -- Agentis Studio generates them from `.agentis/skills/` when you run a sync.
+All provider-specific config files (`.claude/CLAUDE.md`, `.cursor/rules/*.mdc`, etc.) are **derived outputs**. You never edit them directly -- Skillr generates them from `.skillr/skills/` when you run a sync.
 
 ## Skills
 
@@ -47,7 +47,7 @@ See [Creating Skills](./skills) and the [Skill File Format](/reference/skill-for
 
 ## Agents
 
-Agents are pre-defined roles that combine a base persona with custom per-project instructions and assigned skills. Agentis Studio ships with 9 agents:
+Agents are pre-defined roles that combine a base persona with custom per-project instructions and assigned skills. Skillr ships with 9 agents:
 
 - **Orchestrator** -- Coordinates multi-agent workflows
 - **PM Agent** -- Requirements, user stories, planning
@@ -80,7 +80,7 @@ See [Provider Sync](./provider-sync) for details on configuring and running sync
 
 ## Versions
 
-Every time you save a skill, Agentis Studio creates a version snapshot. You can browse the full history, compare any two versions side-by-side with a diff viewer, and restore a previous version with one click.
+Every time you save a skill, Skillr creates a version snapshot. You can browse the full history, compare any two versions side-by-side with a diff viewer, and restore a previous version with one click.
 
 See [Version History](./versions).
 
@@ -88,7 +88,7 @@ See [Version History](./versions).
 
 A project maps to a directory on your filesystem. It holds:
 
-- A collection of skills (stored in `.agentis/skills/`)
+- A collection of skills (stored in `.skillr/skills/`)
 - Provider configuration (which providers are enabled)
 - Agent configuration (which agents are active, custom instructions, skill assignments)
 - Optional settings like `git_auto_commit`
@@ -101,7 +101,7 @@ Projects are created and configured in the Filament Admin panel. Day-to-day skil
 You edit skills in the React SPA (Monaco editor)
     |
     v
-Skills are saved to the database AND written to .agentis/skills/*.md
+Skills are saved to the database AND written to .skillr/skills/*.md
     |
     v
 You click "Sync" (or "Preview Sync" first)

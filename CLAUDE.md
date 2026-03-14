@@ -1,12 +1,12 @@
-# Agentis Studio
+# Skillr
 
-> Universal AI skill/agent configuration manager for multi-provider development workflows.
+> Universal AI skill & prompt configuration manager for multi-provider development workflows.
 
 ## What This Project Does
 
-Agentis Studio lets a developer define, edit, and organize reusable AI skills (prompts + config) in a provider-agnostic format, then sync them outward to the native config format of any supported AI provider (Claude, Cursor, Copilot, Windsurf, Cline, OpenAI).
+Skillr lets a developer define, edit, and organize reusable AI skills (prompts + config) in a provider-agnostic format, then sync them outward to the native config format of any supported AI provider (Claude, Cursor, Copilot, Windsurf, Cline, OpenAI).
 
-**Core philosophy:** `.agentis/` is the single source of truth. All provider-specific files are derived outputs — never edited directly.
+**Core philosophy:** `.skillr/` is the single source of truth. All provider-specific files are derived outputs — never edited directly.
 
 ## Tech Stack
 
@@ -31,7 +31,7 @@ Agentis Studio lets a developer define, edit, and organize reusable AI skills (p
 The project is a Laravel 12 app at the repository root. A separate React SPA lives in `ui/`. Documentation site (VitePress) in `docs/`.
 
 ```
-agentis-studio/
+skillr/
 ├── app/                    # Laravel application
 │   ├── Filament/           # Filament resources & pages
 │   │   ├── Resources/      # ProjectResource, LibrarySkillResource, TagResource
@@ -59,7 +59,7 @@ agentis-studio/
 │   ├── Models/             # Eloquent models
 │   ├── Services/           # Business logic
 │   │   ├── AgentComposeService.php      # Merge agent base + custom + skills
-│   │   ├── AgentisManifestService.php   # .agentis/ directory management
+│   │   ├── SkillrManifestService.php   # .skillr/ directory management
 │   │   ├── BundleExportService.php      # ZIP/JSON bundle export
 │   │   ├── BundleImportService.php      # Bundle import with conflict resolution
 │   │   ├── GitService.php              # Git auto-commit, log, diff
@@ -140,7 +140,7 @@ Tables: `projects`, `project_providers`, `skills`, `skill_versions`, `tags`, `sk
 
 ## Skill File Format
 
-Canonical format is YAML frontmatter + Markdown body, stored in `.agentis/skills/`:
+Canonical format is YAML frontmatter + Markdown body, stored in `.skillr/skills/`:
 
 ```markdown
 ---

@@ -1,4 +1,4 @@
-# Agentis Studio — Feature Ideas
+# Skillr — Feature Ideas
 
 > Brainstormed 2026-03-12. Organized by category.
 
@@ -22,9 +22,9 @@
 
 11. **VS Code Extension** — Browse/edit/test skills directly from VS Code with Monaco integration
 12. **GitHub Action for CI/CD Sync** — Auto-sync provider configs on push to main, validate skill format in PRs
-13. **Skill Scaffolding Templates** — `agentis:new` command with interactive prompts and category-specific starter templates
+13. **Skill Scaffolding Templates** — `skillr:new` command with interactive prompts and category-specific starter templates
 14. **Hot Reload Sync** — File watcher that auto-syncs to providers on skill file save (opt-in)
-15. **Skill Dependency Graph in CLI** — `agentis:graph` command that outputs a text-based dependency tree
+15. **Skill Dependency Graph in CLI** — `skillr:graph` command that outputs a text-based dependency tree
 
 ## Advanced Skill Features
 

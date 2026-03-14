@@ -1,4 +1,4 @@
-# Agentis Studio — Implementation Plan
+# Skillr — Implementation Plan
 
 > This file tracks implementation progress across sessions.
 > Refer to `CLAUDE.md` for architecture details.
@@ -7,7 +7,7 @@
 
 ## Roadmap Overview
 
-Agentis Studio is evolving from a skill/config sync tool into a full agent configuration, orchestration, and runtime platform. The roadmap has three phases:
+Skillr is evolving from a skill/config sync tool into a full agent configuration, orchestration, and runtime platform. The roadmap has three phases:
 
 ```
 Phase A — Agent Designer
@@ -19,7 +19,7 @@ Phase B — Orchestration
   Delegation chains, handoff conditions, shared context.
 
 Phase C — Design + Runtime
-  Lightweight agent runtime inside Agentis. Execute agent loops with real tool calls.
+  Lightweight agent runtime inside Skillr. Execute agent loops with real tool calls.
   Playground evolves into execution environment. Memory persistence. Traces & cost tracking.
 ```
 
@@ -182,7 +182,7 @@ Multi-agent workflow designer with visual DAG builder.
 
 ## Phase C: Design + Runtime (planned)
 
-Lightweight agent runtime inside Agentis Studio.
+Lightweight agent runtime inside Skillr.
 
 - **Execution engine:** run agent loops with real LLM calls and tool execution
 - **Playground evolution:** from chat tester to full agent execution environment
@@ -207,7 +207,7 @@ Lightweight agent runtime inside Agentis Studio.
 - [x] #9–#12 — All core tables and Eloquent models
 
 ### Phase 3: File I/O & Manifest Engine — DONE
-- [x] #13–#16 — SkillFileParser, AgentisManifestService, ProjectScanJob, 19 tests
+- [x] #13–#16 — SkillFileParser, SkillrManifestService, ProjectScanJob, 19 tests
 
 ### Phase 4: Provider Sync Engine — DONE
 - [x] #17, #27–#30 — 6 provider drivers, sync orchestration

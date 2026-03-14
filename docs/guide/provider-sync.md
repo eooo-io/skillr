@@ -1,6 +1,6 @@
 # Provider Sync
 
-Provider sync takes your skills and composed agents and writes them into the native config format for each AI coding assistant. This is the bridge between your portable `.agentis/` skills and the provider-specific files your tools actually read.
+Provider sync takes your skills and composed agents and writes them into the native config format for each AI coding assistant. This is the bridge between your portable `.skillr/` skills and the provider-specific files your tools actually read.
 
 ## Supported Providers
 
@@ -30,7 +30,7 @@ From the project detail page in the React SPA, click **Sync**. This:
 5. Writes the output files to the project directory
 
 ::: warning
-Sync overwrites the provider config files completely. Any manual edits to files like `.claude/CLAUDE.md` or `.cursor/rules/*.mdc` will be lost. The `.agentis/` directory is the source of truth -- always edit there.
+Sync overwrites the provider config files completely. Any manual edits to files like `.claude/CLAUDE.md` or `.cursor/rules/*.mdc` will be lost. The `.skillr/` directory is the source of truth -- always edit there.
 :::
 
 ## What Gets Synced

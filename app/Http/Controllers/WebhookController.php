@@ -74,7 +74,7 @@ class WebhookController extends Controller
         $payload = [
             'test' => true,
             'project_id' => $webhook->project_id,
-            'message' => 'This is a test webhook delivery from Agentis Studio.',
+            'message' => 'This is a test webhook delivery from Skillr.',
         ];
 
         $dispatcher->deliverWebhook($webhook, $webhook->event, $payload);

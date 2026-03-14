@@ -1,6 +1,6 @@
 # API Endpoints
 
-All endpoints are served at `http://localhost:8000/api`. There is no authentication -- Agentis Studio is a single-user application.
+All endpoints are served at `http://localhost:8000/api`. There is no authentication -- Skillr is a single-user application.
 
 ## Health
 
@@ -63,7 +63,7 @@ DELETE /api/projects/{id}
 
 ### Scan Project
 
-Reads `.agentis/skills/*.md` files from disk and upserts them into the database.
+Reads `.skillr/skills/*.md` files from disk and upserts them into the database.
 
 ```
 POST /api/projects/{id}/scan
@@ -90,15 +90,15 @@ Returns diff data with `status` (added/modified/deleted/unchanged), `current_con
 ### Git Log
 
 ```
-GET /api/projects/{id}/git-log?file=.agentis/skills/my-skill.md
+GET /api/projects/{id}/git-log?file=.skillr/skills/my-skill.md
 ```
 
-Returns commit history. The `file` parameter is optional -- omit it for full `.agentis/` history.
+Returns commit history. The `file` parameter is optional -- omit it for full `.skillr/` history.
 
 ### Git Diff
 
 ```
-GET /api/projects/{id}/git-diff?file=.agentis/skills/my-skill.md&ref=abc1234
+GET /api/projects/{id}/git-diff?file=.skillr/skills/my-skill.md&ref=abc1234
 ```
 
 Returns the diff of a file against a specific commit ref.
@@ -155,7 +155,7 @@ Same body as create. Creates a new version snapshot.
 DELETE /api/skills/{id}
 ```
 
-Removes from database and deletes the `.agentis/skills/{slug}.md` file.
+Removes from database and deletes the `.skillr/skills/{slug}.md` file.
 
 ### Duplicate Skill
 

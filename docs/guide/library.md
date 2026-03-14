@@ -1,6 +1,6 @@
 # Skill Library
 
-Agentis Studio ships with 25 pre-built skills across 6 categories. Use them as starting points, import them into projects, or study them as examples of well-structured prompts.
+Skillr ships with 25 pre-built skills across 6 categories. Use them as starting points, import them into projects, or study them as examples of well-structured prompts.
 
 ## Categories
 
@@ -33,7 +33,7 @@ Click a library skill card to open the import modal:
 The import process:
 
 - Creates a new skill in the target project with the library skill's name, description, tags, and body
-- Writes the `.agentis/skills/{slug}.md` file to disk
+- Writes the `.skillr/skills/{slug}.md` file to disk
 - Creates a version 1 snapshot
 - Syncs any tags that do not already exist in the system
 
@@ -43,7 +43,7 @@ If the target project already has a skill with the same slug, the import appends
 
 ## Library vs. Marketplace
 
-The library is a local, pre-seeded collection that ships with every Agentis Studio installation. The [Marketplace](./marketplace) is a self-hosted discovery platform for publishing and installing community skills. Library skills are always available offline; marketplace skills require network access to browse and install.
+The library is a local, pre-seeded collection that ships with every Skillr installation. The [Marketplace](./marketplace) is a self-hosted discovery platform for publishing and installing community skills. Library skills are always available offline; marketplace skills require network access to browse and install.
 
 ## Managing Library Skills
 

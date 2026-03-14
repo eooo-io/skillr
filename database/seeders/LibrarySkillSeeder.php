@@ -239,7 +239,7 @@ class LibrarySkillSeeder extends Seeder
                     ],
                     'body' => $skillData['body'],
                     'uuid' => (string) \Illuminate\Support\Str::uuid(),
-                    'source' => 'agentis-studio',
+                    'source' => 'skillr',
                     'created_at' => now(),
                 ],
             );
