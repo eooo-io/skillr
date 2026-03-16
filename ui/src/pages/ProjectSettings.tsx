@@ -86,14 +86,16 @@ export function ProjectSettings() {
       showToast('Project path is required', 'error')
       return
     }
-    if (
-      allowedPaths.length > 0 &&
-      !allowedPaths.some(
-        (base) => form.path.trim() === base || form.path.trim().startsWith(base + '/'),
-      )
-    ) {
-      showToast(`Path must be within: ${allowedPaths.join(' or ')}`, 'error')
-      return
+    if (allowedPaths.length > 0) {
+      const normPath = form.path.trim().replace(/\\/g, '/')
+      const withinAllowed = allowedPaths.some((base) => {
+        const normBase = base.replace(/\\/g, '/')
+        return normPath === normBase || normPath.startsWith(normBase + '/')
+      })
+      if (!withinAllowed) {
+        showToast(`Path must be within: ${allowedPaths.join(' or ')}`, 'error')
+        return
+      }
     }
 
     setSaving(true)
@@ -249,13 +251,13 @@ export function ProjectSettings() {
               type="text"
               value={form.path}
               onChange={(e) => handleChange('path', e.target.value)}
-              placeholder="/Users/you/projects/my-project"
+              placeholder="/path/to/your/project"
               className="w-full px-3 py-2 text-sm border border-input bg-background font-mono text-xs focus:outline-none focus:ring-1 focus:ring-ring"
             />
             <p className="text-xs text-muted-foreground mt-1">
               {allowedPaths.length > 0
                 ? `Must be within: ${allowedPaths.join(' or ')}`
-                : 'Absolute path to the project directory on the host filesystem.'}
+                : 'Absolute path to the project directory (e.g. /Users/you/projects/app or C:\\Users\\you\\projects\\app).'}
             </p>
           </div>
 

@@ -11,22 +11,30 @@ class SafeProjectPath implements ValidationRule
     {
         $path = realpath($value) ?: $value;
 
-        // Normalize: resolve ../ and ensure absolute
-        if (! str_starts_with($path, '/')) {
-            $fail('The project path must be an absolute path.');
-            return;
-        }
-
         // Block path traversal
         if (str_contains($path, '..')) {
             $fail('The project path must not contain path traversal (..).');
             return;
         }
 
+        // Must be an absolute path (Unix / or Windows drive letter like C:\)
+        if (! self::isAbsolutePath($path)) {
+            $fail('The project path must be an absolute path.');
+            return;
+        }
+
         $allowedBases = self::getAllowedBases();
 
+        // When no restrictions are configured, any absolute path is allowed
+        if (empty($allowedBases)) {
+            return;
+        }
+
+        $normalizedPath = self::normalizePath($path);
+
         foreach ($allowedBases as $base) {
-            if (str_starts_with($path, $base . '/') || $path === $base) {
+            $normalizedBase = self::normalizePath($base);
+            if ($normalizedPath === $normalizedBase || str_starts_with($normalizedPath, $normalizedBase . '/')) {
                 return;
             }
         }
@@ -35,13 +43,39 @@ class SafeProjectPath implements ValidationRule
     }
 
     /**
-     * Get the allowed base paths for the current OS.
+     * Check if a path is absolute (Unix or Windows).
+     */
+    private static function isAbsolutePath(string $path): bool
+    {
+        // Unix absolute path
+        if (str_starts_with($path, '/')) {
+            return true;
+        }
+
+        // Windows absolute path (e.g., C:\, D:\, C:/)
+        if (preg_match('/^[A-Za-z]:[\\\\\/]/', $path)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Normalize path separators to forward slashes and remove trailing slash.
+     */
+    private static function normalizePath(string $path): string
+    {
+        return rtrim(str_replace('\\', '/', $path), '/');
+    }
+
+    /**
+     * Get the allowed base paths for the current environment.
      *
      * @return string[]
      */
     public static function getAllowedBases(): array
     {
-        // Allow explicit override
+        // Allow explicit override via env
         if ($custom = env('PROJECTS_ALLOWED_PATH')) {
             return [$custom];
         }
@@ -51,13 +85,7 @@ class SafeProjectPath implements ValidationRule
             return [$hostPath];
         }
 
-        // Auto-detect based on OS and current user
-        $user = env('USER') ?: (env('USERNAME') ?: (function_exists('posix_geteuid') ? (posix_getpwuid(posix_geteuid())['name'] ?? '') : ''));
-
-        if (PHP_OS_FAMILY === 'Darwin') {
-            return ["/Users/{$user}/Projects"];
-        }
-
-        return ["/home/{$user}/Projects"];
+        // No restrictions configured — allow any absolute path
+        return [];
     }
 }
