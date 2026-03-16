@@ -1,307 +1,153 @@
 # Skillr — Implementation Plan
 
 > This file tracks implementation progress across sessions.
-> Refer to `CLAUDE.md` for architecture details.
+> See `NOTES.md` for the architecture decision rationale.
+> See `CLAUDE.md` for current Laravel architecture details.
 
 ---
 
-## Roadmap Overview
+## Current Direction: NestJS Migration
 
-Skillr is evolving from a skill/config sync tool into a full agent configuration, orchestration, and runtime platform. The roadmap has three phases:
+Skillr is migrating from **Laravel/PHP** to **NestJS/TypeScript** to enable:
 
-```
-Phase A — Agent Designer
-  Design agents as full loop definitions (Goal → Perceive → Reason → Act → Observe).
-  Export to Claude Agent SDK, LangGraph, CrewAI, and generic JSON.
+1. **Self-contained desktop app** — Tauri + NestJS sidecar with SQLite, no Docker/PHP/MariaDB
+2. **Single language stack** — TypeScript everywhere reduces contributor friction
+3. **Shared types** — Frontend and API share validation schemas and interfaces
 
-Phase B — Orchestration
-  Multi-agent workflows as DAGs. Visual workflow builder. Human-in-the-loop checkpoints.
-  Delegation chains, handoff conditions, shared context.
-
-Phase C — Design + Runtime
-  Lightweight agent runtime inside Skillr. Execute agent loops with real tool calls.
-  Playground evolves into execution environment. Memory persistence. Traces & cost tracking.
-```
-
-The existing Component Layer (skills, provider sync, MCP, A2A) remains the foundation. Each phase builds on the previous.
-
----
-
-## Architecture: The Agent Loop
+The React SPA (`ui/`), `.skillr/` file format, and all provider sync output formats remain unchanged.
 
 ```
-Goal
-  │
-  ▼
-Perceive (input + memory retrieval)
-  │
-  ▼
-Reason (model + planning loop)
-  │
-  ▼
-Act (tool call or output)
-  │
-  ▼
-Observe (result fed back into context)
-  │
-  └──► Repeat until goal met or termination condition hit
+┌─────────────────────────────────────────────┐
+│                 Tauri Shell                  │
+│  ┌────────────────┐  ┌───────────────────┐  │
+│  │   React SPA    │  │  NestJS Sidecar   │  │
+│  │   (WebView)    │──│  (Node.js child)  │  │
+│  │                │  │  Port: 8000       │  │
+│  └────────────────┘  └───────┬───────────┘  │
+│                              │              │
+│                     ┌────────┴────────┐     │
+│                     │  SQLite DB      │     │
+│                     │  ~/.skillr/     │     │
+│                     └─────────────────┘     │
+└─────────────────────────────────────────────┘
 ```
 
-### Three Layers
+### Stack Migration
 
-```
-┌─────────────────────────────────────────┐
-│  Orchestration Layer  (Phase B)          │
-│  Workflows, DAGs, delegation chains,     │
-│  human-in-the-loop checkpoints           │
-├─────────────────────────────────────────┤
-│  Agent Layer  (Phase A)                  │
-│  Goal, Perceive, Reason, Act, Observe    │
-│  Each agent is a complete loop           │
-├─────────────────────────────────────────┤
-│  Component Layer  (Phases 1–26, done)    │
-│  Skills, Tools (MCP/A2A), Provider Sync, │
-│  Memory (context sources), Schemas       │
-└─────────────────────────────────────────┘
-```
-
----
-
-## Current Status
-
-**Phases 1–26 COMPLETE.** Component Layer fully built.
-**Phase A in progress** — Agent Designer.
-
----
-
-## Phase A: Agent Designer
-
-### A.1 — Agent Data Model Expansion
-
-| Issue | Title | Status |
+| Layer | Current (Laravel) | Target (NestJS) |
 |---|---|---|
-| #83 | Add agent loop columns to agents table migration | |
-| #84 | Add agent_mcp_server and agent_a2a_agent pivot tables | |
-| #85 | Update Agent model with casts, relationships, fillable | |
-| #86 | Update AgentSeeder with loop field defaults | |
-| #87 | Expand project_agent pivot with override columns | |
-
-**Agent Definition Structure:**
-```
-AgentDefinition
-├── identity        (name, slug, role, icon, model, persona_prompt)
-├── goal            (objective_template, success_criteria, max_iterations, timeout)
-├── perception      (input_schema, memory_sources, context_strategy)
-├── reasoning       (planning_mode, skills, temperature, system_prompt)
-├── actions         (tools: MCP servers + A2A agents + custom tools)
-├── observation     (eval_criteria, output_schema, loop_condition)
-└── orchestration   (parent_agent_id, delegation_rules, can_delegate)
-```
-
-### A.2 — Agent Designer API
-
-| Issue | Title | Status |
-|---|---|---|
-| #88 | Create AgentResource API resource | |
-| #89 | Expand AgentController with full CRUD | |
-| #90 | Agent tool binding endpoints (MCP + A2A) | |
-| #91 | Agent export as JSON/YAML | |
-
-**New endpoints:**
-```
-POST   /api/agents                                    # create
-GET    /api/agents/{agent}                             # show
-PUT    /api/agents/{agent}                             # update
-DELETE /api/agents/{agent}                             # delete
-POST   /api/agents/{agent}/duplicate                   # duplicate
-GET    /api/agents/{agent}/export?format=json|yaml     # export
-PUT    /api/projects/{p}/agents/{a}/mcp-servers        # bind MCP
-PUT    /api/projects/{p}/agents/{a}/a2a-agents         # bind A2A
-```
-
-### A.3 — Agent Builder UI
-
-| Issue | Title | Status |
-|---|---|---|
-| #92 | Agent list view with create/edit/delete | |
-| #93 | Agent Builder form with loop sections | |
-| #94 | Update API client with agent endpoints | |
-| #95 | Agent Builder page routing | |
-
-**Builder sections:** Identity, Goal, Perception, Reasoning, Actions, Observation, Orchestration — each collapsible, with Monaco editors for JSON/prompt fields.
-
-### A.4 — Agent Compose v2
-
-| Issue | Title | Status |
-|---|---|---|
-| #96 | Structured compose output format | |
-| #97 | Structured compose API endpoint | |
-| #98 | Update provider drivers for structured agents | |
-| #99 | Generic JSON agent definition export format | |
-
-**Key change:** `composeStructured()` returns system_prompt, model, tools (MCP/A2A/custom), skills, loop config, delegation config — not just concatenated text.
-
-### A.5 — Agent Visualization Update
-
-| Issue | Title | Status |
-|---|---|---|
-| #100 | Expand graph endpoint with agent loop data | |
-| #101 | React Flow agent loop visualization | |
-| #102 | Agent loop detail panel in visualization | |
-
-### A.6 — Testing & Migration
-
-| Issue | Title | Status |
-|---|---|---|
-| #103 | Pest tests for expanded Agent model | |
-| #104 | Pest tests for AgentComposeService v2 | |
-| #105 | API endpoint tests for agent CRUD | |
-| #106 | Data migration for existing agents | |
-| #107 | Update bundle export/import for expanded agents | |
-
-### Implementation Sequence
-
-```
-A.1 (data model) ──► A.2 + A.4 in parallel (API + compose) ──► A.3 (UI) ──► A.5 (viz) ──► A.6 (tests throughout)
-```
+| Backend | PHP 8.4 / Laravel 12 | TypeScript / NestJS |
+| ORM | Eloquent | Prisma |
+| Database | MariaDB 11 | SQLite (desktop) / PostgreSQL (hosted) |
+| Admin UI | Filament 3 | Absorbed into React SPA |
+| Auth | Laravel session | Passport.js + express-session |
+| Queues | Laravel Jobs | BullMQ (hosted) / in-process (desktop) |
+| Billing | Laravel Cashier | stripe-node SDK |
+| YAML | symfony/yaml | js-yaml |
+| Git ops | Shell commands | simple-git |
+| SSE | Manual response streaming | NestJS @Sse() decorator |
 
 ---
 
-## Phase B: Orchestration (planned)
+## Migration Phases
 
-Multi-agent workflow designer with visual DAG builder.
+### Phase 1: Foundation — [Milestone](https://github.com/eooo-io/skillr/milestone/1)
 
-- **Workflow entity:** name, trigger, entry_agent, steps (DAG), checkpoints, termination
-- **Visual builder:** React Flow as actual flow designer (not just visualization)
-- **Delegation chains:** agents hand off to sub-agents based on conditions
-- **Human-in-the-loop:** checkpoint gates requiring approval before proceeding
-- **Shared context:** agents in a workflow share a context bus
-- **Export:** workflow definitions as LangGraph YAML, CrewAI configs, generic JSON
+**Goal:** Runnable NestJS app with auth, projects, skills CRUD. React SPA works against the new backend.
+
+| # | Issue | Status |
+|---|---|---|
+| #1 | Scaffold NestJS project in `api/` directory | |
+| #2 | Define Prisma schema for all 24 models | |
+| #3 | Auth module — Passport local strategy + sessions | |
+| #4 | Organizations module — multi-tenancy + ResolveOrgGuard | |
+| #5 | Projects module — CRUD with path validation | |
+| #6 | Skills module — CRUD, slug generation, versions, file I/O | |
+| #7 | Tags module — CRUD | |
+| #8 | Wire React SPA proxy to NestJS backend | |
+
+### Phase 2: Core Services — [Milestone](https://github.com/eooo-io/skillr/milestone/2)
+
+**Goal:** Feature parity for skill composition, provider sync, LLM testing, and Git operations.
+
+| # | Issue | Status |
+|---|---|---|
+| #9 | Manifest module — SkillFileParser, ManifestService, SkillCompositionService | |
+| #10 | Sync module — ProviderSyncService + 7 provider drivers | |
+| #11 | LLM module — provider factory + 4 providers | |
+| #12 | Skill test controller — SSE streaming | |
+| #13 | Playground — multi-turn SSE streaming | |
+| #14 | Linter module — 8 prompt quality rules | |
+| #15 | Git module — log, diff, commit via simple-git | |
+| #16 | Versions module — list, show, restore | |
+
+### Phase 3: Ecosystem — [Milestone](https://github.com/eooo-io/skillr/milestone/3)
+
+**Goal:** Library, marketplace, agents, bundles, search, webhooks.
+
+| # | Issue | Status |
+|---|---|---|
+| #17 | Agents module — compose, toggle, assign skills | |
+| #18 | Library module — browse and import | |
+| #19 | Marketplace module — publish, install, vote | |
+| #20 | Search module — cross-project full-text search | |
+| #21 | Bundles module — ZIP/JSON export and import | |
+| #22 | Webhooks module — CRUD, HMAC delivery, event dispatch | |
+| #23 | Skills.sh module — GitHub discovery and import | |
+| #24 | Import module — reverse-sync from provider configs | |
+| #25 | Bulk operations — tag, assign, delete, move | |
+
+### Phase 4: Platform — [Milestone](https://github.com/eooo-io/skillr/milestone/4)
+
+**Goal:** Billing, repositories, advanced features, self-contained desktop app.
+
+| # | Issue | Status |
+|---|---|---|
+| #26 | Billing module — Stripe subscriptions, usage, Connect | |
+| #27 | Repositories module — GitHub/GitLab connect, pull, push | |
+| #28 | MCP servers — CRUD | |
+| #29 | A2A agents — CRUD | |
+| #30 | OpenClaw config — CRUD | |
+| #31 | Visualization — project dependency graph API | |
+| #32 | Inbound webhooks — GitHub push handler | |
+| #33 | Tauri sidecar integration — NestJS as child process | |
+
+### Phase 5: Polish & Cutover — [Milestone](https://github.com/eooo-io/skillr/milestone/5)
+
+**Goal:** Clean transition, remove Laravel entirely.
+
+| # | Issue | Status |
+|---|---|---|
+| #34 | Port seed data — agents and library skills | |
+| #35 | Data migration script — MariaDB to SQLite/PostgreSQL | |
+| #36 | E2E tests — Jest + Supertest for all endpoints | |
+| #37 | GitHub OAuth + Apple Sign In — Passport strategies | |
+| #38 | Remove Laravel — delete PHP backend | |
+| #39 | Update CLAUDE.md for NestJS architecture | |
+| #40 | CI/CD — GitHub Actions for test, build, Tauri releases | |
 
 ---
 
-## Phase C: Design + Runtime (planned)
+## Laravel Legacy (Phases 1-26) — COMPLETE
 
-Lightweight agent runtime inside Skillr.
+The original Laravel implementation built the full Component Layer:
 
-- **Execution engine:** run agent loops with real LLM calls and tool execution
-- **Playground evolution:** from chat tester to full agent execution environment
-- **Real tool calls:** MCP server invocation, A2A agent delegation
-- **Memory persistence:** agent state across loop iterations and sessions
-- **Observation UI:** live view of perceive → reason → act → observe cycle
-- **Execution logs:** traces, token costs, timing, error handling
-- **Sandboxing:** tool execution in isolated environments
-- **Cost controls:** budget limits, approval gates for expensive operations
+- 24 Eloquent models, 28 controllers, 34 services
+- 7 provider sync drivers (Claude, Cursor, Copilot, Windsurf, Cline, OpenAI, OpenClaw)
+- 4 LLM providers (Anthropic, OpenAI, Gemini, Ollama) with streaming
+- Multi-tenant organizations, Stripe billing, marketplace
+- React SPA with 14 pages, Monaco editor, D3 visualizations
+- Authorization policies, rate limiting, webhook encryption
 
----
-
-## Completed Phases (1–26)
-
-<details>
-<summary>Click to expand completed phases</summary>
-
-### Phase 1: Docker Environment & Project Scaffold — DONE
-- [x] #1–#8 — Docker, Filament, React SPA scaffold
-
-### Phase 2: Database Migrations & Models — DONE
-- [x] #9–#12 — All core tables and Eloquent models
-
-### Phase 3: File I/O & Manifest Engine — DONE
-- [x] #13–#16 — SkillFileParser, SkillrManifestService, ProjectScanJob, 19 tests
-
-### Phase 4: Provider Sync Engine — DONE
-- [x] #17, #27–#30 — 6 provider drivers, sync orchestration
-
-### Phase 5: Filament Admin Panel — DONE
-- [x] #31–#35 — ProjectResource, LibrarySkillResource, TagResource, Settings, Dashboard
-
-### Phase 6: Skills CRUD API — DONE
-- [x] #18–#20, #36–#37 — Controllers, resources, 24 routes
-
-### Phase 7: React SPA Core UI — DONE
-- [x] #21–#25 — Layout, Projects, ProjectDetail, SkillEditor, Search
-
-### Phase 8: Live Test Runner — DONE
-- [x] #26, #38 — SSE streaming via Anthropic SDK
-
-### Phase 9: Version History & Diff Viewer — DONE
-- [x] #39–#41 — Version list, Monaco diff, restore flow
-
-### Phase 10: Global Library & Search — DONE
-- [x] #42–#45 — 25 seed skills, library import, FULLTEXT search
-
-### Phase 11: Settings, Polish & QA — DONE
-- [x] #46–#51 — Settings, toasts, shortcuts, empty states, navigation guards
-
-### Phase 12: Agent Compose & Export — DONE
-- [x] #52–#58 — Agent models, seeder, compose service, provider integration
-
-### Phase 13: Token Estimation & Budget Warnings — DONE
-- [x] #62 — Per-skill/agent token counts, color-coded budget warnings
-
-### Phase 14: AI-Assisted Skill Generation — DONE
-- [x] #70 — Natural language → skill via Anthropic API
-
-### Phase 15: Skill Playground with Streaming — DONE
-- [x] #59 — Multi-turn chat, agent compose, model selection
-
-### Phase 16: Skill Dependencies & Composition — DONE
-- [x] #60 — Recursive includes, circular dep detection, resolved bodies
-
-### Phase 17: Git-Backed Skill Versioning — DONE
-- [x] #61 — Auto-commit, git log, git diff endpoints
-
-### Phase 18: Prompt Linting — DONE
-- [x] #63 — 8 lint rules, inline feedback
-
-### Phase 19: Team/Workspace Sharing — DONE
-- [x] #64 — ZIP/JSON bundle export/import with conflict resolution
-
-### Phase 20: Provider Diff Preview — DONE
-- [x] #65 — Preview sync diff before writing
-
-### Phase 21: Skill Templates — DONE
-- [x] #66 — {{variable}} substitution, per-project values
-
-### Phase 22: Bulk Operations — DONE
-- [x] #67 — Multi-select, batch tag/assign/move/delete
-
-### Phase 23: Command Palette — DONE
-- [x] #68 — Ctrl+K fuzzy search across skills, projects, pages
-
-### Phase 24: Skill Marketplace — DONE
-- [x] #69 — Publish, browse, install, vote
-
-### Phase 25: Webhook/Event System — DONE
-- [x] #71 — HMAC-signed webhooks, GitHub push receiver
-
-### Phase 26: Multi-Model Test Runner — DONE
-- [x] #72 — OpenAI, Gemini, Ollama support
-
-</details>
+This code serves as the reference implementation for the NestJS migration. The API contract (routes, request/response shapes) stays identical so the React SPA requires no changes.
 
 ---
 
 ## Tech Decisions
 
-- Anthropic SDK: `mozex/anthropic-laravel`
-- DB_HOST: `127.0.0.1` in .env (local), `mariadb` in .env.example (Docker)
-- FULLTEXT index conditionally skips on SQLite for tests
-- Remote uses HTTPS
-- Session-based auth (`auth:web`) on API routes
-- React Flow (`@xyflow/react`) for visualization
-- Default seeded user: `admin@admin.com` / `password`
-
-## Commands
-
-```bash
-# Local dev
-composer dev                    # server + queue + pail + vite
-
-# Docker
-make up && make migrate         # start + seed
-
-# Tests
-composer test                   # or: make test (Docker)
-cd ui && npx tsc --noEmit      # type-check SPA
-```
+- NestJS mirrors Laravel architecture: modules = service providers, guards = middleware, pipes = form requests
+- Prisma chosen over TypeORM for better type safety and migration ergonomics
+- SQLite for desktop (single file, no setup), PostgreSQL for hosted/team deployments
+- simple-git replaces shell-based git operations for cross-platform reliability
+- BullMQ for hosted queue processing, in-process for desktop (no Redis needed)
+- Strapi rejected — too opinionated for Skillr's custom logic (file I/O, YAML parsing, recursive includes, SSE streaming, Git operations)
