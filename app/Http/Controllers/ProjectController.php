@@ -55,11 +55,14 @@ class ProjectController extends Controller
 
     public function show(Project $project): ProjectResource
     {
+        $this->authorize('view', $project);
+
         return new ProjectResource($project->load(['providers', 'repositories'])->loadCount('skills'));
     }
 
     public function update(Request $request, Project $project): ProjectResource
     {
+        $this->authorize('update', $project);
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string|max:1000',
@@ -84,6 +87,8 @@ class ProjectController extends Controller
 
     public function destroy(Project $project): JsonResponse
     {
+        $this->authorize('delete', $project);
+
         $project->delete();
 
         return response()->json(['message' => 'Project deleted']);
@@ -91,6 +96,8 @@ class ProjectController extends Controller
 
     public function scan(Project $project): JsonResponse
     {
+        $this->authorize('update', $project);
+
         ProjectScanJob::dispatch($project);
 
         return response()->json(['message' => 'Scan queued']);
@@ -98,6 +105,8 @@ class ProjectController extends Controller
 
     public function sync(Project $project, ProviderSyncService $syncService, WebhookDispatcher $webhookDispatcher): JsonResponse
     {
+        $this->authorize('update', $project);
+
         $syncService->syncProject($project);
 
         $webhookDispatcher->dispatch('project.synced', $project, [
@@ -111,6 +120,8 @@ class ProjectController extends Controller
 
     public function syncPreview(Project $project, ProviderSyncService $syncService): JsonResponse
     {
+        $this->authorize('view', $project);
+
         $preview = $syncService->preview($project);
 
         return response()->json(['data' => $preview]);
@@ -118,6 +129,8 @@ class ProjectController extends Controller
 
     public function gitLog(Request $request, Project $project, GitService $gitService): JsonResponse
     {
+        $this->authorize('view', $project);
+
         $file = $request->query('file');
 
         if (! $file) {
@@ -139,6 +152,8 @@ class ProjectController extends Controller
 
     public function gitDiff(Request $request, Project $project, GitService $gitService): JsonResponse
     {
+        $this->authorize('view', $project);
+
         $file = $request->query('file');
         $ref = $request->query('ref');
 

@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Layout } from '@/components/layout/Layout'
 import { CommandPalette } from '@/components/layout/CommandPalette'
 import { useCommandPalette } from '@/hooks/useCommandPalette'
@@ -71,9 +72,11 @@ function AppContent() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <AppContent />
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AppContent />
+      </BrowserRouter>
+    </ErrorBoundary>
   )
 }
 

@@ -18,6 +18,8 @@ class RepositoryController extends Controller
 
     public function show(Project $project): JsonResponse
     {
+        $this->authorize('view', $project);
+
         $repositories = $project->repositories()->get();
 
         return response()->json([
@@ -27,6 +29,8 @@ class RepositoryController extends Controller
 
     public function connect(Request $request, Project $project): JsonResponse
     {
+        $this->authorize('update', $project);
+
         $validated = $request->validate([
             'provider' => 'required|string|in:github,gitlab',
             'full_name' => 'required|string|max:255', // "owner/repo"
@@ -52,6 +56,8 @@ class RepositoryController extends Controller
 
     public function disconnect(Project $project, string $provider): JsonResponse
     {
+        $this->authorize('update', $project);
+
         $repository = $project->repositories()
             ->where('provider', $provider)
             ->firstOrFail();
@@ -63,6 +69,8 @@ class RepositoryController extends Controller
 
     public function status(Project $project, string $provider): JsonResponse
     {
+        $this->authorize('view', $project);
+
         $repository = $project->repositories()
             ->where('provider', $provider)
             ->firstOrFail();
@@ -74,6 +82,8 @@ class RepositoryController extends Controller
 
     public function branches(Project $project, string $provider): JsonResponse
     {
+        $this->authorize('view', $project);
+
         $repository = $project->repositories()
             ->where('provider', $provider)
             ->firstOrFail();
@@ -85,6 +95,8 @@ class RepositoryController extends Controller
 
     public function latestCommit(Project $project, string $provider): JsonResponse
     {
+        $this->authorize('view', $project);
+
         $repository = $project->repositories()
             ->where('provider', $provider)
             ->firstOrFail();
@@ -100,6 +112,8 @@ class RepositoryController extends Controller
 
     public function update(Request $request, Project $project, string $provider): JsonResponse
     {
+        $this->authorize('update', $project);
+
         $repository = $project->repositories()
             ->where('provider', $provider)
             ->firstOrFail();
@@ -121,6 +135,8 @@ class RepositoryController extends Controller
 
     public function files(Project $project, string $provider): JsonResponse
     {
+        $this->authorize('view', $project);
+
         $repository = $project->repositories()
             ->where('provider', $provider)
             ->firstOrFail();
@@ -136,6 +152,8 @@ class RepositoryController extends Controller
 
     public function pullSkills(Project $project, string $provider): JsonResponse
     {
+        $this->authorize('update', $project);
+
         $repository = $project->repositories()
             ->where('provider', $provider)
             ->firstOrFail();
@@ -159,6 +177,8 @@ class RepositoryController extends Controller
 
     public function pushSkills(Request $request, Project $project, string $provider): JsonResponse
     {
+        $this->authorize('update', $project);
+
         $repository = $project->repositories()
             ->where('provider', $provider)
             ->firstOrFail();

@@ -11,6 +11,8 @@ class OpenClawConfigController extends Controller
 {
     public function show(Project $project): JsonResponse
     {
+        $this->authorize('view', $project);
+
         $config = $project->openclawConfig;
 
         return response()->json([
@@ -24,6 +26,8 @@ class OpenClawConfigController extends Controller
 
     public function update(Request $request, Project $project): JsonResponse
     {
+        $this->authorize('update', $project);
+
         $validated = $request->validate([
             'soul_content' => 'nullable|string|max:50000',
             'tools' => 'nullable|array',

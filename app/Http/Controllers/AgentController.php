@@ -29,6 +29,8 @@ class AgentController extends Controller
      */
     public function projectAgents(Project $project): JsonResponse
     {
+        $this->authorize('view', $project);
+
         $agents = Agent::orderBy('sort_order')->get();
 
         $projectAgents = $project->projectAgents()
@@ -70,6 +72,8 @@ class AgentController extends Controller
      */
     public function toggle(Request $request, Project $project, Agent $agent): JsonResponse
     {
+        $this->authorize('update', $project);
+
         $validated = $request->validate([
             'is_enabled' => 'required|boolean',
         ]);
@@ -87,6 +91,8 @@ class AgentController extends Controller
      */
     public function updateInstructions(Request $request, Project $project, Agent $agent): JsonResponse
     {
+        $this->authorize('update', $project);
+
         $validated = $request->validate([
             'custom_instructions' => 'nullable|string|max:10000',
         ]);
@@ -104,6 +110,8 @@ class AgentController extends Controller
      */
     public function assignSkills(Request $request, Project $project, Agent $agent): JsonResponse
     {
+        $this->authorize('update', $project);
+
         $validated = $request->validate([
             'skill_ids' => 'present|array',
             'skill_ids.*' => 'integer|exists:skills,id',
@@ -143,6 +151,8 @@ class AgentController extends Controller
      */
     public function compose(Project $project, Agent $agent): JsonResponse
     {
+        $this->authorize('view', $project);
+
         return response()->json([
             'data' => $this->composeService->compose($project, $agent),
         ]);
@@ -153,6 +163,8 @@ class AgentController extends Controller
      */
     public function composeAll(Project $project): JsonResponse
     {
+        $this->authorize('view', $project);
+
         return response()->json([
             'data' => $this->composeService->composeAll($project),
         ]);

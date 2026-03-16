@@ -12,6 +12,8 @@ class WebhookController extends Controller
 {
     public function index(Project $project): JsonResponse
     {
+        $this->authorize('view', $project);
+
         $webhooks = $project->webhooks()
             ->orderByDesc('created_at')
             ->get();
@@ -21,6 +23,8 @@ class WebhookController extends Controller
 
     public function store(Request $request, Project $project): JsonResponse
     {
+        $this->authorize('update', $project);
+
         $validated = $request->validate([
             'event' => 'required|string|in:skill.created,skill.updated,skill.deleted,project.synced',
             'url' => 'required|url|max:500',
@@ -40,6 +44,8 @@ class WebhookController extends Controller
 
     public function update(Request $request, Webhook $webhook): JsonResponse
     {
+        $this->authorize('update', $webhook);
+
         $validated = $request->validate([
             'event' => 'sometimes|required|string|in:skill.created,skill.updated,skill.deleted,project.synced',
             'url' => 'sometimes|required|url|max:500',
@@ -54,6 +60,8 @@ class WebhookController extends Controller
 
     public function destroy(Webhook $webhook): JsonResponse
     {
+        $this->authorize('delete', $webhook);
+
         $webhook->delete();
 
         return response()->json(['message' => 'Webhook deleted']);
@@ -61,6 +69,8 @@ class WebhookController extends Controller
 
     public function deliveries(Webhook $webhook): JsonResponse
     {
+        $this->authorize('view', $webhook);
+
         $deliveries = $webhook->deliveries()
             ->orderByDesc('created_at')
             ->limit(20)
@@ -71,6 +81,8 @@ class WebhookController extends Controller
 
     public function test(Webhook $webhook, WebhookDispatcher $dispatcher): JsonResponse
     {
+        $this->authorize('update', $webhook);
+
         $payload = [
             'test' => true,
             'project_id' => $webhook->project_id,

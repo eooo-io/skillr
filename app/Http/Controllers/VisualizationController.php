@@ -19,6 +19,8 @@ class VisualizationController extends Controller
      */
     public function graph(Project $project): JsonResponse
     {
+        $this->authorize('view', $project);
+
         $project->load([
             'skills.tags',
             'providers',

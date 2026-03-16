@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Project;
 use App\Models\Skill;
 use App\Models\Tag;
 use App\Services\SkillrManifestService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class BulkSkillController extends Controller
 {
@@ -26,7 +26,7 @@ class BulkSkillController extends Controller
             'remove_tags.*' => 'string|max:50',
         ]);
 
-        $skills = Skill::whereIn('id', $validated['skill_ids'])->get();
+        $skills = $this->scopedSkills($validated['skill_ids']);
         $addTags = $validated['add_tags'] ?? [];
         $removeTags = $validated['remove_tags'] ?? [];
 
@@ -65,7 +65,10 @@ class BulkSkillController extends Controller
             'project_id' => 'required|integer|exists:projects,id',
         ]);
 
-        $skills = Skill::whereIn('id', $validated['skill_ids'])->get();
+        $targetProject = Project::findOrFail($validated['project_id']);
+        $this->authorize('update', $targetProject);
+
+        $skills = $this->scopedSkills($validated['skill_ids']);
 
         foreach ($skills as $skill) {
             $skill->agents()->syncWithoutDetaching([
@@ -86,7 +89,7 @@ class BulkSkillController extends Controller
             'skill_ids.*' => 'integer|exists:skills,id',
         ]);
 
-        $skills = Skill::with('project')->whereIn('id', $validated['skill_ids'])->get();
+        $skills = $this->scopedSkills($validated['skill_ids'], ['project']);
         $count = $skills->count();
 
         foreach ($skills as $skill) {
@@ -111,8 +114,10 @@ class BulkSkillController extends Controller
             'target_project_id' => 'required|integer|exists:projects,id',
         ]);
 
-        $skills = Skill::with('project', 'tags')->whereIn('id', $validated['skill_ids'])->get();
-        $targetProject = \App\Models\Project::findOrFail($validated['target_project_id']);
+        $targetProject = Project::findOrFail($validated['target_project_id']);
+        $this->authorize('update', $targetProject);
+
+        $skills = $this->scopedSkills($validated['skill_ids'], ['project', 'tags']);
         $count = 0;
 
         foreach ($skills as $skill) {
@@ -171,5 +176,25 @@ class BulkSkillController extends Controller
             'message' => "Moved {$count} skill(s) to {$targetProject->name}",
             'count' => $count,
         ]);
+    }
+
+    /**
+     * Fetch skills by IDs, scoped to the current user's organization.
+     */
+    protected function scopedSkills(array $skillIds, array $with = []): \Illuminate\Database\Eloquent\Collection
+    {
+        $query = Skill::whereIn('id', $skillIds)
+            ->whereHas('project', function ($q) {
+                $orgId = auth()->user()?->current_organization_id;
+                if ($orgId) {
+                    $q->where('organization_id', $orgId);
+                }
+            });
+
+        if (! empty($with)) {
+            $query->with($with);
+        }
+
+        return $query->get();
     }
 }

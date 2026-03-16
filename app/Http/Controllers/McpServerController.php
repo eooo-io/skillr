@@ -11,6 +11,8 @@ class McpServerController extends Controller
 {
     public function index(Project $project): JsonResponse
     {
+        $this->authorize('view', $project);
+
         return response()->json([
             'mcp_servers' => $project->mcpServers()->orderBy('name')->get(),
         ]);
@@ -18,6 +20,8 @@ class McpServerController extends Controller
 
     public function store(Request $request, Project $project): JsonResponse
     {
+        $this->authorize('update', $project);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'transport' => 'required|in:stdio,sse,streamable-http',
@@ -36,6 +40,8 @@ class McpServerController extends Controller
 
     public function update(Request $request, ProjectMcpServer $mcpServer): JsonResponse
     {
+        $this->authorize('update', $mcpServer);
+
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
             'transport' => 'sometimes|in:stdio,sse,streamable-http',
@@ -54,6 +60,8 @@ class McpServerController extends Controller
 
     public function destroy(ProjectMcpServer $mcpServer): JsonResponse
     {
+        $this->authorize('delete', $mcpServer);
+
         $mcpServer->delete();
 
         return response()->json(['message' => 'MCP server removed.']);
