@@ -21,6 +21,8 @@ class BundleController extends Controller
      */
     public function export(Request $request, Project $project): JsonResponse|BinaryFileResponse
     {
+        $this->authorize('view', $project);
+
         $validated = $request->validate([
             'skill_ids' => 'nullable|array',
             'skill_ids.*' => 'integer|exists:skills,id',
@@ -52,6 +54,8 @@ class BundleController extends Controller
      */
     public function import(Request $request, Project $project): JsonResponse
     {
+        $this->authorize('update', $project);
+
         $isPreview = $request->boolean('preview');
 
         // Determine import source: file upload or JSON body

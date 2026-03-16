@@ -58,7 +58,9 @@ api.interceptors.response.use(
   (error) => {
     const message =
       error.response?.data?.message || error.message || 'An error occurred'
-    console.error('[API Error]', message)
+    if (import.meta.env.DEV) {
+      console.error('[API Error]', message)
+    }
 
     // Show global toast for server errors (lazy import to avoid circular dep)
     if (error.response?.status >= 500) {

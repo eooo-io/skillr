@@ -35,7 +35,7 @@ Route::post('/webhooks/github/{project}', [InboundWebhookController::class, 'git
 Route::get('/billing/plans', [BillingController::class, 'plans']);
 
 // ─── Authenticated Routes ────────────────────────────────────
-Route::middleware('auth:web')->group(function () {
+Route::middleware(['auth:web', 'throttle:120,1'])->group(function () {
     // Projects
     Route::get('/projects', [ProjectController::class, 'index']);
     Route::post('/projects', [ProjectController::class, 'store']);
@@ -69,12 +69,12 @@ Route::middleware('auth:web')->group(function () {
     Route::get('/projects/{project}/skills/{skill}/variables', [SkillVariableController::class, 'index']);
     Route::put('/projects/{project}/skills/{skill}/variables', [SkillVariableController::class, 'update']);
 
-    // Live Test Runner (SSE)
-    Route::post('/skills/{skill}/test', SkillTestController::class);
-    Route::post('/playground', [SkillTestController::class, 'playground']);
+    // Live Test Runner (SSE) — rate-limited to prevent LLM cost abuse
+    Route::post('/skills/{skill}/test', SkillTestController::class)->middleware('throttle:10,1');
+    Route::post('/playground', [SkillTestController::class, 'playground'])->middleware('throttle:10,1');
 
-    // AI Skill Generation
-    Route::post('/skills/generate', SkillGenerateController::class);
+    // AI Skill Generation — rate-limited
+    Route::post('/skills/generate', SkillGenerateController::class)->middleware('throttle:5,1');
 
     // Versions
     Route::get('/skills/{skill}/versions', [VersionController::class, 'index']);

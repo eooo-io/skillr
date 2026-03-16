@@ -27,6 +27,8 @@ class SkillController extends Controller
 
     public function index(Project $project): AnonymousResourceCollection
     {
+        $this->authorize('view', $project);
+
         $skills = $project->skills()->with('tags')->orderBy('name')->get();
 
         return SkillResource::collection($skills);
@@ -34,6 +36,8 @@ class SkillController extends Controller
 
     public function store(Request $request, Project $project): SkillResource
     {
+        $this->authorize('update', $project);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
@@ -87,11 +91,15 @@ class SkillController extends Controller
 
     public function show(Skill $skill): SkillResource
     {
+        $this->authorize('view', $skill);
+
         return new SkillResource($skill->load('tags', 'project'));
     }
 
     public function update(Request $request, Skill $skill): SkillResource
     {
+        $this->authorize('update', $skill);
+
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string|max:1000',
@@ -129,6 +137,8 @@ class SkillController extends Controller
 
     public function lint(Skill $skill, PromptLinter $linter): JsonResponse
     {
+        $this->authorize('view', $skill);
+
         $issues = $linter->lint($skill->body ?? '');
 
         return response()->json(['data' => $issues]);
@@ -136,6 +146,8 @@ class SkillController extends Controller
 
     public function destroy(Skill $skill): JsonResponse
     {
+        $this->authorize('delete', $skill);
+
         $project = $skill->project;
         $skillData = ['id' => $skill->id, 'slug' => $skill->slug, 'name' => $skill->name];
         $this->manifestService->deleteSkillFile($project->resolved_path, $skill->slug);
@@ -148,8 +160,12 @@ class SkillController extends Controller
 
     public function duplicate(Request $request, Skill $skill): SkillResource
     {
+        $this->authorize('view', $skill);
+
         $targetProjectId = $request->input('target_project_id', $skill->project_id);
         $targetProject = Project::findOrFail($targetProjectId);
+
+        $this->authorize('update', $targetProject);
 
         $newName = $skill->name . ' (Copy)';
         $slug = Str::slug($newName);

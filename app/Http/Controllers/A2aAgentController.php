@@ -11,6 +11,8 @@ class A2aAgentController extends Controller
 {
     public function index(Project $project): JsonResponse
     {
+        $this->authorize('view', $project);
+
         return response()->json([
             'a2a_agents' => $project->a2aAgents()->orderBy('name')->get(),
         ]);
@@ -18,6 +20,8 @@ class A2aAgentController extends Controller
 
     public function store(Request $request, Project $project): JsonResponse
     {
+        $this->authorize('update', $project);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'url' => 'required|string|max:500',
@@ -34,6 +38,8 @@ class A2aAgentController extends Controller
 
     public function update(Request $request, ProjectA2aAgent $a2aAgent): JsonResponse
     {
+        $this->authorize('update', $a2aAgent);
+
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
             'url' => 'sometimes|string|max:500',
@@ -50,6 +56,8 @@ class A2aAgentController extends Controller
 
     public function destroy(ProjectA2aAgent $a2aAgent): JsonResponse
     {
+        $this->authorize('delete', $a2aAgent);
+
         $a2aAgent->delete();
 
         return response()->json(['message' => 'A2A agent removed.']);

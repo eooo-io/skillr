@@ -21,6 +21,8 @@ class SkillTestController extends Controller
      */
     public function __invoke(Request $request, Skill $skill): StreamedResponse
     {
+        $this->authorize('view', $skill);
+
         $validated = $request->validate([
             'user_message' => 'required|string|max:10000',
         ]);
@@ -97,7 +99,10 @@ class SkillTestController extends Controller
                     }
                 }
             } catch (\Throwable $e) {
-                echo "data: " . json_encode(['type' => 'error', 'error' => $e->getMessage()]) . "\n\n";
+                $errorMessage = app()->isProduction()
+                    ? 'An error occurred while processing your request.'
+                    : $e->getMessage();
+                echo "data: " . json_encode(['type' => 'error', 'error' => $errorMessage]) . "\n\n";
                 ob_flush();
                 flush();
             }

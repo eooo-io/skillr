@@ -89,6 +89,8 @@ composer dev
 
 Default login: `admin@admin.com` / `password`
 
+> **Warning:** Change these credentials immediately in any non-local environment. The seeded admin account is for development only.
+
 ## Features
 
 ### Skill Management
@@ -176,13 +178,11 @@ cd ui && npx tsc --noEmit
 
 ## Contributing
 
-Contributions are welcome. Please open an issue first to discuss what you'd like to change.
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions and guidelines.
 
-1. Fork the repo
-2. Create your feature branch (`git checkout -b feature/my-feature`)
-3. Commit your changes
-4. Push to the branch (`git push origin feature/my-feature`)
-5. Open a Pull Request
+## Security
+
+If you discover a security vulnerability, please see [SECURITY.md](SECURITY.md) for responsible disclosure instructions. **Do not open a public issue.**
 
 ## License
 

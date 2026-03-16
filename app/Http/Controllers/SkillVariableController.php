@@ -20,6 +20,8 @@ class SkillVariableController extends Controller
      */
     public function index(Project $project, Skill $skill): JsonResponse
     {
+        $this->authorize('view', $project);
+
         $variables = SkillVariable::where('project_id', $project->id)
             ->where('skill_id', $skill->id)
             ->get()
@@ -56,6 +58,8 @@ class SkillVariableController extends Controller
      */
     public function update(Request $request, Project $project, Skill $skill): JsonResponse
     {
+        $this->authorize('update', $project);
+
         $validated = $request->validate([
             'variables' => 'required|array',
             'variables.*' => 'nullable|string|max:10000',

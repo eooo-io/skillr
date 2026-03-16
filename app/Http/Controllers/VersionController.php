@@ -16,6 +16,8 @@ class VersionController extends Controller
 
     public function index(Skill $skill): AnonymousResourceCollection
     {
+        $this->authorize('view', $skill);
+
         $versions = $skill->versions()->orderByDesc('version_number')->get();
 
         return VersionResource::collection($versions);
@@ -23,6 +25,8 @@ class VersionController extends Controller
 
     public function show(Skill $skill, int $versionNumber): VersionResource
     {
+        $this->authorize('view', $skill);
+
         $version = $skill->versions()->where('version_number', $versionNumber)->firstOrFail();
 
         return new VersionResource($version);
@@ -30,6 +34,8 @@ class VersionController extends Controller
 
     public function restore(Skill $skill, int $versionNumber): VersionResource
     {
+        $this->authorize('update', $skill);
+
         $version = $skill->versions()->where('version_number', $versionNumber)->firstOrFail();
 
         // Restore skill data from the version snapshot

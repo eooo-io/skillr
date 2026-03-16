@@ -25,6 +25,7 @@ class Webhook extends Model
             'is_active' => 'boolean',
             'last_triggered_at' => 'datetime',
             'last_status' => 'integer',
+            'secret' => 'encrypted',
         ];
     }
 

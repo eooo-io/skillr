@@ -50,6 +50,8 @@ class ImportController extends Controller
      */
     public function import(Request $request, Project $project): JsonResponse
     {
+        $this->authorize('update', $project);
+
         $validated = $request->validate([
             'path' => 'required|string',
             'provider' => 'nullable|string|in:claude,cursor,copilot,windsurf,cline,openai',
