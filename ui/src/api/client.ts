@@ -88,7 +88,8 @@ export const updateProject = (id: number, data: Partial<Project>) =>
 
 export const deleteProject = (id: number) => api.delete(`/projects/${id}`)
 
-export const scanProject = (id: number) => api.post(`/projects/${id}/scan`)
+export const scanProject = (id: number) =>
+  api.post<ApiResponse<import('@/types').ScanResult>>(`/projects/${id}/scan`).then((r) => r.data.data)
 
 export const syncProject = (id: number) => api.post(`/projects/${id}/sync`)
 

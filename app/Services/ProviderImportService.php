@@ -17,6 +17,7 @@ class ProviderImportService
         'windsurf' => 'parseWindsurf',
         'cline' => 'parseCline',
         'openai' => 'parseOpenAI',
+        'codex' => 'parseCodex',
     ];
 
     /**
@@ -74,15 +75,16 @@ class ProviderImportService
                     'includes' => [],
                 ]);
 
-                // Attach tags
-                if (! empty($skillData['tags'])) {
-                    $tagIds = [];
-                    foreach ($skillData['tags'] as $tagName) {
-                        $tag = \App\Models\Tag::firstOrCreate(['name' => $tagName]);
-                        $tagIds[] = $tag->id;
-                    }
-                    $skill->tags()->sync($tagIds);
+                // Attach tags — include source provider tag for traceability
+                $tagNames = $skillData['tags'] ?? [];
+                $tagNames[] = "imported:{$provider}";
+
+                $tagIds = [];
+                foreach ($tagNames as $tagName) {
+                    $tag = \App\Models\Tag::firstOrCreate(['name' => trim($tagName)]);
+                    $tagIds[] = $tag->id;
                 }
+                $skill->tags()->sync($tagIds);
 
                 // Create initial version
                 $skill->versions()->create([
@@ -91,7 +93,7 @@ class ProviderImportService
                         'id' => $slug,
                         'name' => $skillData['name'],
                         'description' => $skillData['description'] ?? null,
-                        'tags' => $skillData['tags'] ?? [],
+                        'tags' => $tagNames,
                     ],
                     'body' => $skillData['body'],
                     'note' => "Imported from {$provider}",
@@ -99,7 +101,23 @@ class ProviderImportService
                 ]);
 
                 // Write to .skillr/skills/
-                app(SkillrManifestService::class)->writeSkillFile($project, $skill);
+                $frontmatter = [
+                    'id' => $slug,
+                    'name' => $skillData['name'],
+                    'description' => $skillData['description'] ?? null,
+                    'tags' => $tagNames,
+                    'model' => $skillData['model'] ?? null,
+                    'tools' => [],
+                    'includes' => [],
+                    'created_at' => $skill->created_at->toIso8601String(),
+                    'updated_at' => $skill->updated_at->toIso8601String(),
+                ];
+
+                app(SkillrManifestService::class)->writeSkillFile(
+                    $project->resolved_path,
+                    $frontmatter,
+                    $skillData['body'],
+                );
 
                 $existingSlugs[] = $slug;
                 $created++;
@@ -191,7 +209,6 @@ class ProviderImportService
             $content = File::get($file);
             $slug = pathinfo($file, PATHINFO_FILENAME);
 
-            // Extract name from H1 if present
             $name = Str::title(str_replace('-', ' ', $slug));
             $body = $content;
 
@@ -242,6 +259,50 @@ class ProviderImportService
     }
 
     /**
+     * Parse Codex CLI: AGENTS.md at project root (H2 sections) + .codex/*.md files
+     */
+    private function parseCodex(string $path): array
+    {
+        $skills = [];
+
+        // Check for AGENTS.md at project root
+        $agentsFile = $path . '/AGENTS.md';
+        if (File::exists($agentsFile)) {
+            $skills = array_merge($skills, $this->parseMarkdownHeadings(File::get($agentsFile), 2));
+        }
+
+        // Check for .codex/ directory with .md files
+        $codexDir = $path . '/.codex';
+        if (File::isDirectory($codexDir)) {
+            foreach (File::glob($codexDir . '/*.md') as $file) {
+                $content = File::get($file);
+                $slug = pathinfo($file, PATHINFO_FILENAME);
+
+                $name = Str::title(str_replace('-', ' ', $slug));
+                $body = $content;
+
+                if (preg_match('/^#\s+(.+)$/m', $content, $matches)) {
+                    $name = trim($matches[1]);
+                    $body = trim(preg_replace('/^#\s+.+\n*/m', '', $content, 1));
+                }
+
+                if (! empty(trim($body))) {
+                    $skills[] = [
+                        'name' => $name,
+                        'slug' => $slug,
+                        'description' => null,
+                        'body' => $body,
+                        'tags' => [],
+                        'model' => null,
+                    ];
+                }
+            }
+        }
+
+        return $skills;
+    }
+
+    /**
      * Split markdown content by heading level into individual skills.
      */
     private function parseMarkdownHeadings(string $content, int $level): array
@@ -257,13 +318,10 @@ class ProviderImportService
 
         $skills = [];
 
-        // parts[0] = content before first heading (skip)
-        // parts[1] = first heading name, parts[2] = first body, etc.
         for ($i = 1; $i < count($parts); $i += 2) {
             $name = trim($parts[$i]);
             $body = isset($parts[$i + 1]) ? trim($parts[$i + 1]) : '';
 
-            // Strip trailing horizontal rule
             $body = preg_replace('/\n---\s*$/', '', $body);
             $body = trim($body);
 
@@ -271,7 +329,6 @@ class ProviderImportService
                 continue;
             }
 
-            // Skip meta headings
             if (in_array(strtolower($name), ['claude.md', 'github copilot instructions', 'agents'])) {
                 continue;
             }
