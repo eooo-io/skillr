@@ -23,6 +23,7 @@ use App\Http\Controllers\OpenClawConfigController;
 use App\Http\Controllers\McpServerController;
 use App\Http\Controllers\A2aAgentController;
 use App\Http\Controllers\BillingController;
+use App\Http\Controllers\DesktopConfigController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Controllers\VisualizationController;
@@ -180,6 +181,16 @@ Route::middleware(['auth:web', 'throttle:120,1'])->group(function () {
     Route::post('/billing/connect', [BillingController::class, 'connectSetup']);
     Route::get('/billing/connect/status', [BillingController::class, 'connectStatus']);
     Route::get('/billing/earnings', [BillingController::class, 'earnings']);
+
+    // Desktop App Config Sync
+    Route::get('/desktop-configs', [DesktopConfigController::class, 'index']);
+    Route::get('/desktop-configs/detect', [DesktopConfigController::class, 'detect']);
+    Route::post('/desktop-configs', [DesktopConfigController::class, 'store']);
+    Route::delete('/desktop-configs/{appSlug}', [DesktopConfigController::class, 'destroy']);
+    Route::post('/desktop-configs/sync', [DesktopConfigController::class, 'syncAll']);
+    Route::post('/desktop-configs/{appSlug}/sync', [DesktopConfigController::class, 'syncApp']);
+    Route::get('/desktop-configs/{appSlug}/preview', [DesktopConfigController::class, 'preview']);
+    Route::post('/desktop-configs/import-mcp', [DesktopConfigController::class, 'importMcp']);
 
     // Settings
     Route::get('/settings', SettingsController::class);
