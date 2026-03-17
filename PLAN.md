@@ -128,6 +128,39 @@ The React SPA (`ui/`), `.skillr/` file format, and all provider sync output form
 
 ---
 
+## Desktop App Config Sync — [Milestone](https://github.com/eooo-io/skillr/milestone/7)
+
+**Goal:** Extend Skillr to sync MCP server definitions and app settings to desktop AI tools — making Skillr the single source of truth for both project-level provider configs AND user-level desktop app configurations.
+
+The fragmentation problem doesn't stop at IDE/CLI instruction files. Desktop apps like Claude Desktop, ChatGPT Desktop, Claude Code, Codex CLI, Cursor, and Windsurf each maintain their own config files for MCP server connections, model preferences, permissions, and approval modes. Skillr already stores MCP server definitions per project — this phase generates desktop app configs from the same source.
+
+### Feature 1: Desktop MCP Config Sync
+
+| # | Issue | Status |
+|---|---|---|
+| #49 | Define desktop app config schema and data model | |
+| #50 | Desktop MCP sync drivers — Claude Desktop, Claude Code, Cursor, Windsurf | |
+| #51 | Desktop MCP sync API endpoints and UI | |
+| #52 | Reverse-import MCP servers from desktop app configs | |
+
+### Feature 2: Desktop App Settings Sync
+
+| # | Issue | Status |
+|---|---|---|
+| #53 | Desktop app settings model — workspace profiles | |
+| #54 | Desktop settings sync drivers — Claude Code, Codex CLI, Cursor | |
+| #55 | Desktop config diff preview before sync | |
+| #56 | Tests for desktop config sync drivers | |
+
+### Implementation sequence
+
+```
+#49 (data model) → #50 (MCP drivers) + #52 (reverse-import) in parallel → #51 (API + UI)
+#53 (workspace profiles) → #54 (settings drivers) → #55 (diff preview) → #56 (tests throughout)
+```
+
+---
+
 ## Laravel Legacy (Phases 1-26) — COMPLETE
 
 The original Laravel implementation built the full Component Layer:
