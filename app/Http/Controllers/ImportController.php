@@ -20,7 +20,7 @@ class ImportController extends Controller
     {
         $validated = $request->validate([
             'path' => 'required|string',
-            'provider' => 'nullable|string|in:claude,cursor,copilot,windsurf,cline,openai',
+            'provider' => 'nullable|string|in:claude,cursor,copilot,windsurf,cline,openai,codex',
         ]);
 
         $path = realpath($validated['path']);
@@ -54,7 +54,7 @@ class ImportController extends Controller
 
         $validated = $request->validate([
             'path' => 'required|string',
-            'provider' => 'nullable|string|in:claude,cursor,copilot,windsurf,cline,openai',
+            'provider' => 'nullable|string|in:claude,cursor,copilot,windsurf,cline,openai,codex',
         ]);
 
         $path = realpath($validated['path']);

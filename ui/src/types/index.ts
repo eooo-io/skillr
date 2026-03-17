@@ -402,6 +402,16 @@ export interface ProjectGraphData {
   sync_outputs: Record<string, string[]>
 }
 
+export interface ScanResult {
+  skillr: { found: number; created: number; updated: number }
+  providers: {
+    detected: Record<string, number>
+    imported: number
+    skipped: number
+  }
+  total_skills: number
+}
+
 export interface ApiResponse<T> {
   data: T
 }

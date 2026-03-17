@@ -16,6 +16,7 @@ const PROVIDERS = [
   { value: 'windsurf', label: 'Windsurf (.windsurf/rules/)' },
   { value: 'cline', label: 'Cline (.clinerules)' },
   { value: 'openai', label: 'OpenAI (.openai/instructions.md)' },
+  { value: 'codex', label: 'Codex CLI (AGENTS.md / .codex/)' },
 ]
 
 export default function ImportTab({ projectId, projectPath, onImported }: ImportTabProps) {

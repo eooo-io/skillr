@@ -3,11 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\ProjectResource;
-use App\Jobs\ProjectScanJob;
 use App\Models\Project;
 use App\Models\ProjectProvider;
 use App\Rules\SafeProjectPath;
 use App\Services\GitService;
+use App\Services\ProjectScanService;
 use App\Services\ProviderSyncService;
 use App\Services\WebhookDispatcher;
 use Illuminate\Http\JsonResponse;
@@ -94,13 +94,13 @@ class ProjectController extends Controller
         return response()->json(['message' => 'Project deleted']);
     }
 
-    public function scan(Project $project): JsonResponse
+    public function scan(Project $project, ProjectScanService $scanService): JsonResponse
     {
         $this->authorize('update', $project);
 
-        ProjectScanJob::dispatch($project);
+        $result = $scanService->scan($project);
 
-        return response()->json(['message' => 'Scan queued']);
+        return response()->json(['data' => $result]);
     }
 
     public function sync(Project $project, ProviderSyncService $syncService, WebhookDispatcher $webhookDispatcher): JsonResponse

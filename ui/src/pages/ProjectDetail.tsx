@@ -86,14 +86,25 @@ export function ProjectDetail() {
   const handleScan = async () => {
     if (!project) return
     try {
-      await scanProject(project.id)
-      showToast('Scan queued')
-      // Reload skills after a brief delay for the queue
-      setTimeout(async () => {
-        const sk = await fetchSkills(project.id)
-        setSkills(sk)
-        loadProjects()
-      }, 1500)
+      const result = await scanProject(project.id)
+      const parts: string[] = []
+      if (result.skillr.found > 0) {
+        parts.push(`${result.skillr.found} from .skillr`)
+      }
+      if (result.providers.imported > 0) {
+        const providers = Object.keys(result.providers.detected).join(', ')
+        parts.push(`${result.providers.imported} imported from ${providers}`)
+      }
+      if (result.providers.skipped > 0) {
+        parts.push(`${result.providers.skipped} skipped`)
+      }
+      const message = parts.length > 0
+        ? `Scan complete: ${parts.join(', ')}`
+        : 'Scan complete: no skills found'
+      showToast(message)
+      const sk = await fetchSkills(project.id)
+      setSkills(sk)
+      loadProjects()
     } catch {
       showToast('Scan failed', 'error')
     }
