@@ -147,13 +147,33 @@ The long-term plan is to migrate to NestJS/TypeScript so we can ship a self-cont
 
 ---
 
-## What's Next
+## The Next Frontier: Desktop App Configs
 
-The direction I'm most excited about is turning Skillr from a skill sync tool into an agent configuration platform. Today, you define individual skills. Tomorrow, you define complete agent personas — with goals, tool access, memory strategies, and delegation chains — and export them to frameworks like Claude Agent SDK, LangGraph, or CrewAI.
+There's a layer of fragmentation that Skillr doesn't fully address yet — and it's worth being honest about.
 
-The `.skillr/` directory becomes the canonical definition of how AI operates in your project: what it knows, what it can do, how it should behave. Provider sync becomes one output target among many.
+Everything I've described so far deals with **project-level** instruction files. The `.claude/CLAUDE.md`, `.cursor/rules/`, `.github/copilot-instructions.md` files that live inside your repository and tell AI tools how to work with *that specific codebase*.
 
-But that's Phase A. Right now, the immediate value is simpler: write your AI instructions once, and every tool on your team stays synchronized.
+But there's a second layer: **desktop app configurations**. Claude Desktop, ChatGPT Desktop, Claude Code, Codex CLI, Cursor, and Windsurf all maintain their own user-level config files that control MCP server connections, model preferences, permission rules, and approval modes. And predictably, every app stores these in a different location with a different schema.
+
+Claude Desktop keeps its MCP servers in `~/.config/claude/claude_desktop_config.json`. Claude Code uses `~/.claude/settings.json` and per-project `.mcp.json` files. Cursor has `~/.cursor/mcp.json`. Codex CLI stores model and approval settings in `~/.codex/config.json`. Same MCP server, same intent — three different files, three different places.
+
+If your team has standardized on a set of MCP servers — a database connector, a documentation search tool, a deployment helper — every developer currently has to manually configure those servers in every desktop app they use. There's no way to say "here are the five MCP servers our team uses" and have that propagate everywhere.
+
+This is the natural next step for Skillr. The existing architecture already stores MCP server definitions per project and generates provider-specific configs through a trait called `GeneratesMcpConfig`. Extending this to write desktop app config files is a straightforward addition: same data source, new output targets.
+
+Beyond MCP servers, there's a "workspace profile" concept forming — a portable set of shared settings (default model, approval mode, tool permissions) that maps to each desktop app's native configuration schema. A team lead defines the profile once, and every developer's tools inherit those defaults.
+
+We're building this now. The immediate goal is desktop MCP sync — making Skillr the single source of truth for both your project instructions *and* your tool configurations. The longer-term goal is something more ambitious.
+
+---
+
+## What's Next: From Skills to Agents
+
+The direction I'm most excited about is turning Skillr from a skill sync tool into an agent configuration platform. Today, you define individual skills. Tomorrow, you define complete agent personas — with goals, tool access (including MCP servers and A2A connections), memory strategies, and delegation chains — and export them to frameworks like Claude Agent SDK, LangGraph, or CrewAI.
+
+The `.skillr/` directory becomes the canonical definition of how AI operates in your project and across your team's tools: what it knows, what it can do, how it should behave, and what it can connect to. Provider sync and desktop config sync become two output channels from the same source of truth.
+
+But that's further out. Right now, the immediate value is simpler: write your AI instructions once, configure your tools once, and everything stays synchronized.
 
 ---
 
