@@ -1,0 +1,171 @@
+import { describe, it, expect } from 'vitest';
+import { getDriver, getAllDrivers, getDriverSlugs } from './index.js';
+import type { ResolvedSkill } from '../types.js';
+
+function makeSkill(overrides: Partial<ResolvedSkill> = {}): ResolvedSkill {
+  return {
+    slug: 'test-skill',
+    name: 'Test Skill',
+    description: 'A test skill.',
+    body: 'You must always return JSON.',
+    category: 'general',
+    skill_type: null,
+    gotchas: null,
+    tags: [],
+    conditions: null,
+    ...overrides,
+  };
+}
+
+describe('driver registry', () => {
+  it('returns all 6 drivers', () => {
+    expect(getAllDrivers()).toHaveLength(6);
+  });
+
+  it('returns all 6 slugs', () => {
+    const slugs = getDriverSlugs();
+    expect(slugs).toEqual(expect.arrayContaining(['claude', 'cursor', 'copilot', 'windsurf', 'cline', 'openai']));
+  });
+
+  it('throws for unknown provider', () => {
+    expect(() => getDriver('unknown')).toThrow('Unknown provider: unknown');
+  });
+});
+
+describe('claude driver', () => {
+  const driver = getDriver('claude');
+
+  it('generates a single CLAUDE.md file', () => {
+    const files = driver.generate([makeSkill()], '/project');
+    expect(files).toHaveLength(1);
+    expect(files[0].path).toContain('.claude/CLAUDE.md');
+  });
+
+  it('includes skill name as H2 heading', () => {
+    const files = driver.generate([makeSkill()], '/project');
+    expect(files[0].content).toContain('## Test Skill');
+  });
+
+  it('includes body content', () => {
+    const files = driver.generate([makeSkill()], '/project');
+    expect(files[0].content).toContain('You must always return JSON.');
+  });
+
+  it('includes gotchas when present', () => {
+    const files = driver.generate([makeSkill({ gotchas: 'Watch out!' })], '/project');
+    expect(files[0].content).toContain('### Common Gotchas');
+    expect(files[0].content).toContain('Watch out!');
+  });
+
+  it('includes conditions as blockquote', () => {
+    const files = driver.generate([makeSkill({ conditions: { file_patterns: ['*.ts', '*.tsx'] } })], '/project');
+    expect(files[0].content).toContain('**Applies to:**');
+    expect(files[0].content).toContain('*.ts, *.tsx');
+  });
+
+  it('handles multiple skills', () => {
+    const skills = [makeSkill({ slug: 'a', name: 'Skill A' }), makeSkill({ slug: 'b', name: 'Skill B' })];
+    const files = driver.generate(skills, '/project');
+    expect(files).toHaveLength(1);
+    expect(files[0].content).toContain('## Skill A');
+    expect(files[0].content).toContain('## Skill B');
+  });
+});
+
+describe('cursor driver', () => {
+  const driver = getDriver('cursor');
+
+  it('generates one .mdc file per skill', () => {
+    const skills = [makeSkill({ slug: 'a' }), makeSkill({ slug: 'b' })];
+    const files = driver.generate(skills, '/project');
+    expect(files).toHaveLength(2);
+    expect(files[0].path).toContain('.cursor/rules/a.mdc');
+    expect(files[1].path).toContain('.cursor/rules/b.mdc');
+  });
+
+  it('sets alwaysApply true when no conditions', () => {
+    const files = driver.generate([makeSkill()], '/project');
+    expect(files[0].content).toContain('alwaysApply: true');
+  });
+
+  it('sets alwaysApply false and adds globs when conditions present', () => {
+    const files = driver.generate([makeSkill({ conditions: { file_patterns: ['*.py'] } })], '/project');
+    expect(files[0].content).toContain('alwaysApply: false');
+    expect(files[0].content).toContain('*.py');
+  });
+
+  it('includes tags in frontmatter', () => {
+    const files = driver.generate([makeSkill({ tags: ['python', 'api'] })], '/project');
+    expect(files[0].content).toContain('python');
+    expect(files[0].content).toContain('api');
+  });
+});
+
+describe('copilot driver', () => {
+  const driver = getDriver('copilot');
+
+  it('generates a single copilot-instructions.md', () => {
+    const files = driver.generate([makeSkill()], '/project');
+    expect(files).toHaveLength(1);
+    expect(files[0].path).toContain('.github/copilot-instructions.md');
+  });
+
+  it('includes all skills with H2 headings', () => {
+    const files = driver.generate([makeSkill({ name: 'My Skill' })], '/project');
+    expect(files[0].content).toContain('## My Skill');
+  });
+});
+
+describe('windsurf driver', () => {
+  const driver = getDriver('windsurf');
+
+  it('generates one .md file per skill', () => {
+    const files = driver.generate([makeSkill({ slug: 'ws-skill' })], '/project');
+    expect(files).toHaveLength(1);
+    expect(files[0].path).toContain('.windsurf/rules/ws-skill.md');
+  });
+
+  it('uses H1 heading for skill name', () => {
+    const files = driver.generate([makeSkill({ name: 'Wind Skill' })], '/project');
+    expect(files[0].content).toContain('# Wind Skill');
+  });
+});
+
+describe('cline driver', () => {
+  const driver = getDriver('cline');
+
+  it('generates a single .clinerules file', () => {
+    const files = driver.generate([makeSkill()], '/project');
+    expect(files).toHaveLength(1);
+    expect(files[0].path).toContain('.clinerules');
+  });
+});
+
+describe('openai driver', () => {
+  const driver = getDriver('openai');
+
+  it('generates a single instructions.md', () => {
+    const files = driver.generate([makeSkill()], '/project');
+    expect(files).toHaveLength(1);
+    expect(files[0].path).toContain('.openai/instructions.md');
+  });
+});
+
+describe('all single-file drivers produce consistent format', () => {
+  for (const slug of ['copilot', 'cline', 'openai'] as const) {
+    it(`${slug} includes H2 heading, body, and separator`, () => {
+      const driver = getDriver(slug);
+      const files = driver.generate([makeSkill({ name: 'Fmt Test', body: 'Format body.' })], '/project');
+      expect(files[0].content).toContain('## Fmt Test');
+      expect(files[0].content).toContain('Format body.');
+      expect(files[0].content).toContain('---');
+    });
+
+    it(`${slug} includes gotchas section`, () => {
+      const driver = getDriver(slug);
+      const files = driver.generate([makeSkill({ gotchas: 'Edge case here.' })], '/project');
+      expect(files[0].content).toContain('### Common Gotchas');
+      expect(files[0].content).toContain('Edge case here.');
+    });
+  }
+});
