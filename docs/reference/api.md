@@ -1,6 +1,6 @@
 # API Endpoints
 
-All endpoints are served at `http://localhost:8000/api`. There is no authentication -- Skillr is a single-user application.
+All endpoints are served at `http://localhost:8000/api`. API routes are protected by session-based authentication (`auth:web` middleware). See [Authentication](../guide/authentication) for details.
 
 ## Health
 
@@ -691,4 +691,389 @@ PUT /api/settings
   "ollama_url": "http://localhost:11434",
   "default_model": "claude-sonnet-4-6"
 }
+```
+
+---
+
+## Repositories
+
+### List Repository Connections
+
+```
+GET /api/projects/{id}/repositories
+```
+
+### Connect Repository
+
+```
+POST /api/projects/{id}/repositories
+```
+
+```json
+{
+  "provider": "github",
+  "owner": "your-org",
+  "name": "your-repo",
+  "default_branch": "main",
+  "access_token": "ghp_...",
+  "auto_scan_on_push": true,
+  "auto_sync_on_push": false
+}
+```
+
+### Update Repository Config
+
+```
+PUT /api/projects/{id}/repositories/{provider}
+```
+
+### Disconnect Repository
+
+```
+DELETE /api/projects/{id}/repositories/{provider}
+```
+
+### Repository Status
+
+```
+GET /api/projects/{id}/repositories/{provider}/status
+```
+
+### List Branches
+
+```
+GET /api/projects/{id}/repositories/{provider}/branches
+```
+
+### Latest Commit
+
+```
+GET /api/projects/{id}/repositories/{provider}/latest-commit
+```
+
+### Browse Files
+
+```
+GET /api/projects/{id}/repositories/{provider}/files
+```
+
+### Pull from Remote
+
+```
+POST /api/projects/{id}/repositories/{provider}/pull
+```
+
+### Push to Remote
+
+```
+POST /api/projects/{id}/repositories/{provider}/push
+```
+
+### Allowed Paths
+
+```
+GET /api/repositories/allowed-paths
+```
+
+---
+
+## MCP Servers
+
+### List MCP Servers
+
+```
+GET /api/projects/{id}/mcp-servers
+```
+
+### Add MCP Server
+
+```
+POST /api/projects/{id}/mcp-servers
+```
+
+```json
+{
+  "name": "PostgreSQL",
+  "transport": "stdio",
+  "config": {
+    "command": "npx",
+    "args": ["-y", "@modelcontextprotocol/server-postgres"],
+    "env": { "DATABASE_URL": "postgresql://localhost:5432/mydb" }
+  }
+}
+```
+
+### Update MCP Server
+
+```
+PUT /api/mcp-servers/{id}
+```
+
+### Delete MCP Server
+
+```
+DELETE /api/mcp-servers/{id}
+```
+
+---
+
+## A2A Agents
+
+### List A2A Agents
+
+```
+GET /api/projects/{id}/a2a-agents
+```
+
+### Create A2A Agent
+
+```
+POST /api/projects/{id}/a2a-agents
+```
+
+```json
+{
+  "name": "Code Review Agent",
+  "provider": "custom",
+  "config": {
+    "endpoint": "https://agent.example.com/a2a",
+    "capabilities": ["code-review"]
+  }
+}
+```
+
+### Update A2A Agent
+
+```
+PUT /api/a2a-agents/{id}
+```
+
+### Delete A2A Agent
+
+```
+DELETE /api/a2a-agents/{id}
+```
+
+---
+
+## OpenClaw Config
+
+### Get OpenClaw Config
+
+```
+GET /api/projects/{id}/openclaw
+```
+
+### Update OpenClaw Config
+
+```
+PUT /api/projects/{id}/openclaw
+```
+
+---
+
+## Visualization
+
+### Project Graph
+
+```
+GET /api/projects/{id}/graph
+```
+
+Returns nodes (skills, agents), edges (includes, assignments), and detected circular dependencies.
+
+---
+
+## Reverse Import
+
+### Detect Skills in Provider Configs
+
+```
+POST /api/import/detect
+```
+
+```json
+{
+  "path": "/path/to/project"
+}
+```
+
+### Import Detected Skills
+
+```
+POST /api/projects/{id}/import
+```
+
+---
+
+## Desktop Config Sync
+
+### List Synced Desktop Apps
+
+```
+GET /api/desktop-configs
+```
+
+### Detect Installed Apps
+
+```
+GET /api/desktop-configs/detect
+```
+
+### Register App
+
+```
+POST /api/desktop-configs
+```
+
+### Unregister App
+
+```
+DELETE /api/desktop-configs/{appSlug}
+```
+
+### Sync All Apps
+
+```
+POST /api/desktop-configs/sync
+```
+
+### Sync Single App
+
+```
+POST /api/desktop-configs/{appSlug}/sync
+```
+
+### Preview Sync
+
+```
+GET /api/desktop-configs/{appSlug}/preview
+```
+
+### Import MCP Servers from App
+
+```
+POST /api/desktop-configs/import-mcp
+```
+
+---
+
+## Authentication
+
+### Register
+
+```
+POST /api/auth/register
+```
+
+```json
+{
+  "name": "Jane Doe",
+  "email": "jane@example.com",
+  "password": "password",
+  "password_confirmation": "password"
+}
+```
+
+### Login
+
+```
+POST /api/auth/login
+```
+
+```json
+{
+  "email": "jane@example.com",
+  "password": "password"
+}
+```
+
+### Logout
+
+```
+POST /api/auth/logout
+```
+
+### Current User
+
+```
+GET /api/auth/me
+```
+
+---
+
+## Billing
+
+### Subscription Status
+
+```
+GET /api/billing/status
+```
+
+### Available Plans
+
+```
+GET /api/billing/plans
+```
+
+### Subscribe
+
+```
+POST /api/billing/subscribe
+```
+
+```json
+{
+  "plan": "pro"
+}
+```
+
+### Change Plan
+
+```
+POST /api/billing/change-plan
+```
+
+### Cancel Subscription
+
+```
+POST /api/billing/cancel
+```
+
+### Resume Subscription
+
+```
+POST /api/billing/resume
+```
+
+### Setup Payment Intent
+
+```
+POST /api/billing/setup-intent
+```
+
+### Update Payment Method
+
+```
+PUT /api/billing/payment-method
+```
+
+### Invoice History
+
+```
+GET /api/billing/invoices
+```
+
+### Usage Breakdown
+
+```
+GET /api/billing/usage
+```
+
+### Stripe Connect (Marketplace Sellers)
+
+```
+POST /api/billing/connect
+GET  /api/billing/connect/status
+GET  /api/billing/earnings
 ```
