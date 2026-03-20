@@ -4,14 +4,21 @@ Skills are stored as Markdown files with YAML frontmatter in `.skillr/skills/`. 
 
 ## File Location
 
+Skills can be stored as flat files or folders:
+
 ```
 project-root/
   .skillr/
     skills/
-      my-skill.md
+      simple-skill.md           # Flat file format
+      complex-skill/            # Folder format
+        skill.md                # Main skill file
+        gotchas.md              # Supplementary file
+        examples/
+          good-output.md        # Additional files
 ```
 
-The filename is the skill's slug with a `.md` extension. Slugs are auto-generated from the skill name (lowercased, spaces replaced with hyphens, special characters removed).
+The filename (or folder name) is the skill's slug. Slugs are auto-generated from the skill name (lowercased, spaces replaced with hyphens, special characters removed). The folder format is used when a skill has supplementary files; see [Skill Taxonomy](../guide/skill-taxonomy#supplementary-files).
 
 ## Structure
 
@@ -22,12 +29,17 @@ A skill file has two sections separated by the YAML frontmatter delimiters (`---
 id: summarize-doc
 name: Summarize Document
 description: Summarizes any document to key bullet points
+category: data-analysis
+skill_type: capability-uplift
 tags: [summarization, documents]
 model: claude-sonnet-4-6
 max_tokens: 1000
 tools: []
 includes: []
 template_variables: []
+gotchas: |
+  - Documents over 100k tokens may be truncated silently
+  - Tables in PDFs often lose formatting during extraction
 created_at: 2026-01-15T09:00:00Z
 updated_at: 2026-03-09T14:22:00Z
 ---
@@ -57,12 +69,16 @@ the key points and present them as a concise bulleted list.
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `description` | `string` | `null` | Short summary of the skill's purpose |
+| `category` | `string` | `general` | Skill category. See [Skill Taxonomy](../guide/skill-taxonomy#categories). |
+| `skill_type` | `string` | `null` | `capability-uplift` or `encoded-preference`. See [Skill Types](../guide/skill-taxonomy#skill-types). |
 | `tags` | `string[]` | `[]` | Tags for categorization and filtering |
 | `model` | `string` | `null` | Target model (e.g., `claude-sonnet-4-6`). Falls back to default model in settings. |
 | `max_tokens` | `integer` | `null` | Maximum output tokens for test/playground. Falls back to system default. |
 | `tools` | `object[]` | `[]` | Tool/function definitions in JSON Schema format |
 | `includes` | `string[]` | `[]` | Slugs of other skills in the same project to prepend. See [Includes](../guide/includes). |
 | `template_variables` | `object[]` | `[]` | Template variable definitions. See [Templates](../guide/templates). |
+| `gotchas` | `string` | `null` | Common failure points and edge cases. See [Gotchas](../guide/skill-taxonomy#gotchas). |
+| `supplementary_files` | `object[]` | `[]` | Additional files in a skill folder. Each entry has `path` and `content`. |
 | `created_at` | `string` (ISO 8601) | Auto-set | Creation timestamp |
 | `updated_at` | `string` (ISO 8601) | Auto-set | Last modification timestamp |
 

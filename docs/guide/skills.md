@@ -16,12 +16,15 @@ Open any skill from the project detail page to launch the Skill Editor. The edit
 |---|---|---|---|
 | `name` | string | Yes | Display name of the skill |
 | `description` | string | No | Short summary of what the skill does |
+| `category` | string | No | [Skill category](./skill-taxonomy#categories) (e.g., `code-quality-review`) |
+| `skill_type` | string | No | [Skill type](./skill-taxonomy#skill-types): `capability-uplift` or `encoded-preference` |
 | `model` | string | No | Target model (e.g., `claude-sonnet-4-6`) |
 | `max_tokens` | number | No | Max output tokens for test/playground |
 | `tags` | string[] | No | Tags for categorization and filtering |
 | `tools` | object[] | No | Tool/function definitions (JSON) |
 | `includes` | string[] | No | Slugs of other skills to [include](./includes) |
 | `template_variables` | object[] | No | [Template variable](./templates) definitions |
+| `gotchas` | string | No | [Common failure points](./skill-taxonomy#gotchas) and edge cases |
 
 Fill in the fields in the sidebar form. The `name` field is the only required field -- everything else is optional.
 

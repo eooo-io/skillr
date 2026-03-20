@@ -41,6 +41,7 @@ export default defineConfig({
           text: 'Skills',
           items: [
             { text: 'Creating Skills', link: '/guide/skills' },
+            { text: 'Skill Taxonomy', link: '/guide/skill-taxonomy' },
             { text: 'Includes & Composition', link: '/guide/includes' },
             { text: 'Template Variables', link: '/guide/templates' },
             { text: 'Prompt Linting', link: '/guide/linting' },
@@ -59,6 +60,7 @@ export default defineConfig({
           items: [
             { text: 'Sync Overview', link: '/guide/provider-sync' },
             { text: 'Diff Preview', link: '/guide/diff-preview' },
+            { text: 'Reverse Import', link: '/guide/reverse-import' },
             { text: 'Git Auto-Commit', link: '/guide/git-integration' },
           ],
         },
@@ -80,9 +82,33 @@ export default defineConfig({
           ],
         },
         {
+          text: 'Integrations',
+          items: [
+            { text: 'MCP Servers', link: '/guide/mcp-servers' },
+            { text: 'A2A Agents', link: '/guide/a2a-agents' },
+            { text: 'OpenClaw Config', link: '/guide/openclaw' },
+            { text: 'Repository Connections', link: '/guide/repositories' },
+            { text: 'Desktop Config Sync', link: '/guide/desktop-sync' },
+          ],
+        },
+        {
+          text: 'Discovery',
+          items: [
+            { text: 'Cross-Project Search', link: '/guide/search' },
+            { text: 'Project Visualization', link: '/guide/visualization' },
+          ],
+        },
+        {
           text: 'Automation',
           items: [
             { text: 'Webhooks', link: '/guide/webhooks' },
+          ],
+        },
+        {
+          text: 'Account',
+          items: [
+            { text: 'Authentication', link: '/guide/authentication' },
+            { text: 'Billing & Subscriptions', link: '/guide/billing' },
           ],
         },
       ],
