@@ -112,6 +112,15 @@ export default defineConfig({
       ],
       '/reference/': [
         {
+          text: 'Specification',
+          items: [
+            { text: 'Skill Format Spec v1', link: '/reference/spec-v1' },
+            { text: 'Provider Output Contract', link: '/reference/provider-contract' },
+            { text: 'Composition Spec', link: '/reference/composition-spec' },
+            { text: 'Template Variable Spec', link: '/reference/template-spec' },
+          ],
+        },
+        {
           text: 'Reference',
           items: [
             { text: 'Skill File Format', link: '/reference/skill-format' },

@@ -1,183 +1,141 @@
 # Skillr — Implementation Plan
 
 > This file tracks implementation progress across sessions.
-> See `NOTES.md` for the architecture decision rationale.
 > See `CLAUDE.md` for current Laravel architecture details.
 
 ---
 
-## Current Direction: NestJS Migration
+## Current Direction: CLI-First Open Source Tool
 
-Skillr is migrating from **Laravel/PHP** to **NestJS/TypeScript** to enable:
+Skillr is a **portable AI instruction format with cross-provider sync**. The core value is: define skills once in `.skillr/`, compile to native config files for Claude, Cursor, Copilot, Windsurf, Cline, and OpenAI.
 
-1. **Self-contained desktop app** — Tauri + NestJS sidecar with SQLite, no Docker/PHP/MariaDB
-2. **Single language stack** — TypeScript everywhere reduces contributor friction
-3. **Shared types** — Frontend and API share validation schemas and interfaces
-
-The React SPA (`ui/`), `.skillr/` file format, and all provider sync output formats remain unchanged.
+The strategic priority is shipping a standalone CLI (`npx skillr`) that works without Docker, databases, or a web browser. The Laravel web app continues as an optional power-user dashboard.
 
 ```
-┌─────────────────────────────────────────────┐
-│                 Tauri Shell                  │
-│  ┌────────────────┐  ┌───────────────────┐  │
-│  │   React SPA    │  │  NestJS Sidecar   │  │
-│  │   (WebView)    │──│  (Node.js child)  │  │
-│  │                │  │  Port: 8000       │  │
-│  └────────────────┘  └───────┬───────────┘  │
-│                              │              │
-│                     ┌────────┴────────┐     │
-│                     │  SQLite DB      │     │
-│                     │  ~/.skillr/     │     │
-│                     └─────────────────┘     │
-└─────────────────────────────────────────────┘
-```
-
-### Stack Migration
-
-| Layer | Current (Laravel) | Target (NestJS) |
-|---|---|---|
-| Backend | PHP 8.4 / Laravel 12 | TypeScript / NestJS |
-| ORM | Eloquent | Prisma |
-| Database | MariaDB 11 | SQLite (desktop) / PostgreSQL (hosted) |
-| Admin UI | Filament 3 | Absorbed into React SPA |
-| Auth | Laravel session | Passport.js + express-session |
-| Queues | Laravel Jobs | BullMQ (hosted) / in-process (desktop) |
-| YAML | symfony/yaml | js-yaml |
-| Git ops | Shell commands | simple-git |
-| SSE | Manual response streaming | NestJS @Sse() decorator |
-
----
-
-## Migration Phases
-
-### Phase 1: Foundation — [Milestone](https://github.com/eooo-io/skillr/milestone/1)
-
-**Goal:** Runnable NestJS app with auth, projects, skills CRUD. React SPA works against the new backend.
-
-| # | Issue | Status |
-|---|---|---|
-| #1 | Scaffold NestJS project in `api/` directory | |
-| #2 | Define Prisma schema for all 24 models | |
-| #3 | Auth module — Passport local strategy + sessions | |
-| #4 | Organizations module — multi-tenancy + ResolveOrgGuard | |
-| #5 | Projects module — CRUD with path validation | |
-| #6 | Skills module — CRUD, slug generation, versions, file I/O | |
-| #7 | Tags module — CRUD | |
-| #8 | Wire React SPA proxy to NestJS backend | |
-
-### Phase 2: Core Services — [Milestone](https://github.com/eooo-io/skillr/milestone/2)
-
-**Goal:** Feature parity for skill composition, provider sync, LLM testing, and Git operations.
-
-| # | Issue | Status |
-|---|---|---|
-| #9 | Manifest module — SkillFileParser, ManifestService, SkillCompositionService | |
-| #10 | Sync module — ProviderSyncService + 7 provider drivers | |
-| #11 | LLM module — provider factory + 4 providers | |
-| #12 | Skill test controller — SSE streaming | |
-| #13 | Playground — multi-turn SSE streaming | |
-| #14 | Linter module — 8 prompt quality rules | |
-| #15 | Git module — log, diff, commit via simple-git | |
-| #16 | Versions module — list, show, restore | |
-
-### Phase 3: Ecosystem — [Milestone](https://github.com/eooo-io/skillr/milestone/3)
-
-**Goal:** Library, agents, bundles, search, webhooks.
-
-| # | Issue | Status |
-|---|---|---|
-| #17 | Agents module — compose, toggle, assign skills | |
-| #18 | Library module — browse and import | |
-| #20 | Search module — cross-project full-text search | |
-| #21 | Bundles module — ZIP/JSON export and import | |
-| #22 | Webhooks module — CRUD, HMAC delivery, event dispatch | |
-| #23 | Skills.sh module — GitHub discovery and import | |
-| #24 | Import module — reverse-sync from provider configs | |
-| #25 | Bulk operations — tag, assign, delete, move | |
-
-### Phase 4: Platform — [Milestone](https://github.com/eooo-io/skillr/milestone/4)
-
-**Goal:** Repositories, advanced features, self-contained desktop app.
-
-| # | Issue | Status |
-|---|---|---|
-| #27 | Repositories module — GitHub/GitLab connect, pull, push | |
-| #28 | MCP servers — CRUD | |
-| #29 | A2A agents — CRUD | |
-| #30 | OpenClaw config — CRUD | |
-| #31 | Visualization — project dependency graph API | |
-| #32 | Inbound webhooks — GitHub push handler | |
-| #33 | Tauri sidecar integration — NestJS as child process | |
-
-### Phase 5: Polish & Cutover — [Milestone](https://github.com/eooo-io/skillr/milestone/5)
-
-**Goal:** Clean transition, remove Laravel entirely.
-
-| # | Issue | Status |
-|---|---|---|
-| #34 | Port seed data — agents and library skills | |
-| #35 | Data migration script — MariaDB to SQLite/PostgreSQL | |
-| #36 | E2E tests — Jest + Supertest for all endpoints | |
-| #37 | GitHub OAuth + Apple Sign In — Passport strategies | |
-| #38 | Remove Laravel — delete PHP backend | |
-| #39 | Update CLAUDE.md for NestJS architecture | |
-| #40 | CI/CD — GitHub Actions for test, build, Tauri releases | |
-
----
-
-## Desktop App Config Sync — [Milestone](https://github.com/eooo-io/skillr/milestone/7)
-
-**Goal:** Extend Skillr to sync MCP server definitions and app settings to desktop AI tools — making Skillr the single source of truth for both project-level provider configs AND user-level desktop app configurations.
-
-The fragmentation problem doesn't stop at IDE/CLI instruction files. Desktop apps like Claude Desktop, ChatGPT Desktop, Claude Code, Codex CLI, Cursor, and Windsurf each maintain their own config files for MCP server connections, model preferences, permissions, and approval modes. Skillr already stores MCP server definitions per project — this phase generates desktop app configs from the same source.
-
-### Feature 1: Desktop MCP Config Sync
-
-| # | Issue | Status |
-|---|---|---|
-| #49 | Define desktop app config schema and data model | |
-| #50 | Desktop MCP sync drivers — Claude Desktop, Claude Code, Cursor, Windsurf | |
-| #51 | Desktop MCP sync API endpoints and UI | |
-| #52 | Reverse-import MCP servers from desktop app configs | |
-
-### Feature 2: Desktop App Settings Sync
-
-| # | Issue | Status |
-|---|---|---|
-| #53 | Desktop app settings model — workspace profiles | |
-| #54 | Desktop settings sync drivers — Claude Code, Codex CLI, Cursor | |
-| #55 | Desktop config diff preview before sync | |
-| #56 | Tests for desktop config sync drivers | |
-
-### Implementation sequence
-
-```
-#49 (data model) → #50 (MCP drivers) + #52 (reverse-import) in parallel → #51 (API + UI)
-#53 (workspace profiles) → #54 (settings drivers) → #55 (diff preview) → #56 (tests throughout)
+.skillr/skills/
+    ├── code-review.md
+    ├── testing-strategy.md
+    └── api-standards.md
+          │
+          ▼
+   ┌──────────────┐
+   │  Composition  │  ← resolve includes, substitute templates
+   │    Engine     │
+   └──────┬───────┘
+          │
+          ▼
+   ┌──────────────┐
+   │   Provider    │  ← pure transform: skills → native format
+   │   Drivers     │
+   └──────┬───────┘
+          │
+    ┌─────┼─────┬─────┬─────┬─────┐
+    ▼     ▼     ▼     ▼     ▼     ▼
+ CLAUDE  .cursor  copilot  .windsurf  .clinerules  .openai
+  .md    /rules   .md      /rules                  .md
 ```
 
 ---
 
-## Laravel Legacy (Phases 1-26) — COMPLETE
+## Phase 1: Formalize .skillr/ Spec v1 — [Milestone 9](https://github.com/eooo-io/skillr/milestone/9)
 
-The original Laravel implementation built the full Component Layer:
+**Goal:** Pin the canonical format as a stable, versioned specification. Everything else (CLI, plugins, community adoption) depends on this.
+
+| # | Issue | Status |
+|---|---|---|
+| #62 | Define Skill Format Spec v1 with versioning | |
+| #63 | Define provider output contract | |
+| #64 | Define composition and include resolution spec | |
+| #65 | Define template variable resolution spec | |
+
+**Deliverables:** `docs/reference/spec-v1.md`, `provider-contract.md`, `composition-spec.md`, `template-spec.md`
+
+---
+
+## Phase 2: Standalone CLI Tool — [Milestone 10](https://github.com/eooo-io/skillr/milestone/10)
+
+**Goal:** Ship `npx skillr` — a standalone Node.js CLI that works without Docker, MariaDB, or a browser.
+
+| # | Issue | Status |
+|---|---|---|
+| #66 | Scaffold CLI package with TypeScript + Commander.js | |
+| #67 | Port SkillFileParser to TypeScript | |
+| #68 | Port SkillCompositionService to TypeScript | |
+| #69 | Port TemplateResolver to TypeScript | |
+| #70 | Port PromptLinter to TypeScript | |
+| #71 | Port 6 provider drivers to TypeScript | |
+| #72 | `skillr init` command | |
+| #73 | `skillr add <name>` command | |
+| #74 | `skillr sync` command | |
+| #75 | `skillr diff` command | |
+| #76 | `skillr lint` command | |
+| #77 | `skillr import` command | |
+| #78 | `skillr test <skill>` command | |
+| #79 | Publish to npm as `skillr` | |
+
+**Deliverables:** `cli/` directory, npm package, working `skillr init && skillr sync` flow.
+
+---
+
+## Phase 3: Pluggable Provider Architecture — [Milestone 11](https://github.com/eooo-io/skillr/milestone/11)
+
+**Goal:** Make it trivial for the community to add new AI tool support.
+
+| # | Issue | Status |
+|---|---|---|
+| #80 | Define ProviderPlugin interface and discovery | |
+| #81 | Extract built-in providers as reference implementations | |
+| #82 | `skillr provider:add <name>` command | |
+| #83 | Document "How to write a provider" guide | |
+
+---
+
+## Phase 4: README & Positioning Overhaul — [Milestone 12](https://github.com/eooo-io/skillr/milestone/12)
+
+**Goal:** Reposition as CLI-first. README should make someone go "oh damn" in 30 seconds.
+
+| # | Issue | Status |
+|---|---|---|
+| #84 | Rewrite README for CLI-first positioning | |
+| #85 | Add CLI quickstart guide to docs | |
+| #86 | Update docs homepage and navigation | |
+| #87 | Add "How it works" architecture diagram | |
+
+---
+
+## Phase 5: Roadmap Realignment — [Milestone 13](https://github.com/eooo-io/skillr/milestone/13)
+
+**Goal:** Clean up planning artifacts from the NestJS migration era.
+
+| # | Issue | Status |
+|---|---|---|
+| #88 | Close NestJS migration milestones and issues | DONE |
+| #89 | Update PLAN.md with CLI-first roadmap | DONE |
+| #90 | Update CLAUDE.md with CLI architecture | |
+
+---
+
+## Laravel Web App — COMPLETE (reference implementation)
+
+The Laravel app is feature-complete and continues to run as an optional dashboard:
 
 - 24 Eloquent models, 28 controllers, 34 services
 - 7 provider sync drivers (Claude, Cursor, Copilot, Windsurf, Cline, OpenAI, OpenClaw)
 - 4 LLM providers (Anthropic, OpenAI, Gemini, Ollama) with streaming
 - Multi-tenant organizations with role-based access
 - React SPA with 14 pages, Monaco editor, D3 visualizations
-- Authorization policies, rate limiting, webhook encryption
+- Skill taxonomy (categories, types, gotchas, supplementary files)
+- Desktop app config sync for MCP servers
 
-This code serves as the reference implementation for the NestJS migration. The API contract (routes, request/response shapes) stays identical so the React SPA requires no changes.
+The Laravel codebase serves as the reference implementation for the CLI port. The CLI does NOT depend on Laravel — it reads `.skillr/` directly from the filesystem.
 
 ---
 
-## Tech Decisions
+## Future (post-CLI adoption)
 
-- NestJS mirrors Laravel architecture: modules = service providers, guards = middleware, pipes = form requests
-- Prisma chosen over TypeORM for better type safety and migration ergonomics
-- SQLite for desktop (single file, no setup), PostgreSQL for hosted/team deployments
-- simple-git replaces shell-based git operations for cross-platform reliability
-- BullMQ for hosted queue processing, in-process for desktop (no Redis needed)
-- Strapi rejected — too opinionated for Skillr's custom logic (file I/O, YAML parsing, recursive includes, SSE streaming, Git operations)
+These are deferred until CLI adoption validates demand:
+
+- Desktop app (Tauri + embedded backend)
+- Team collaboration features
+- Plugin registry
+- CI/CD integrations (GitHub Actions, pre-commit hooks)
