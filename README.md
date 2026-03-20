@@ -5,7 +5,7 @@
 **Write AI instructions once. Sync to every tool you use.**
 
 [![MIT License](https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge)](LICENSE)
-[![npm](https://img.shields.io/badge/npm-skillr-cb3837?style=for-the-badge&logo=npm&logoColor=white)](https://www.npmjs.com/package/skillr)
+[![npm](https://img.shields.io/npm/v/%40eooo/skillr?style=for-the-badge&logo=npm&logoColor=white&color=cb3837)](https://www.npmjs.com/package/@eooo/skillr)
 [![Node 18+](https://img.shields.io/badge/node-18%2B-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 
@@ -35,10 +35,17 @@ Every AI coding tool has its own config format. Claude uses `CLAUDE.md`. Cursor 
 ## Quick Start
 
 ```bash
-npx skillr init
-npx skillr add "Code Review Standards"
+npx @eooo/skillr init
+npx @eooo/skillr add "Code Review Standards"
 # edit .skillr/skills/code-review-standards.md
-npx skillr sync
+npx @eooo/skillr sync
+```
+
+Or install globally:
+
+```bash
+npm install -g @eooo/skillr
+skillr init
 ```
 
 That's it. Your skill is now in `.claude/CLAUDE.md`, `.cursor/rules/code-review-standards.mdc`, `.github/copilot-instructions.md`, and every other provider you've enabled.
@@ -97,8 +104,8 @@ template_variables:
 Built-in quality checks catch vague instructions, weak constraints, conflicting directives, missing output formats, and more:
 
 ```bash
-npx skillr lint                  # lint all skills
-npx skillr lint code-review      # lint one skill
+npx @eooo/skillr lint                  # lint all skills
+npx @eooo/skillr lint code-review      # lint one skill
 ```
 
 ## Commands
@@ -139,7 +146,7 @@ skillr test my-skill --model gpt-4o   # override the skill's model
 Already have AI instructions scattered across provider configs? Import them into `.skillr/` as the single source of truth:
 
 ```bash
-npx skillr import
+npx @eooo/skillr import
 # Detected 3 skills in .claude/CLAUDE.md
 # Detected 2 skills in .cursor/rules/
 # Imported 5 skills → .skillr/skills/
