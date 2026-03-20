@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { Coins, Link2, Variable, Plus, Trash2, Filter } from 'lucide-react'
+import { Coins, Link2, Variable, Plus, Trash2, Filter, AlertTriangle, Layers } from 'lucide-react'
 import { estimateTokens } from '@/api/client'
 import ConditionsEditor from '@/components/skills/ConditionsEditor'
-import type { Skill, TemplateVariable, SkillConditions } from '@/types'
+import { SKILL_CATEGORIES, SKILL_TYPES } from '@/constants/categories'
+import type { Skill, TemplateVariable, SkillConditions, SkillCategory, SkillType } from '@/types'
 
 const MODEL_CONTEXT_LIMITS: Record<string, number> = {
   'claude-opus-4-6': 200000,
@@ -94,6 +95,44 @@ export function FrontmatterForm({ skill, onChange, projectSkills }: FrontmatterF
         />
       </div>
 
+      {/* Category & Skill Type */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label className="text-xs font-medium text-muted-foreground">
+            Category
+          </label>
+          <select
+            value={skill.category || ''}
+            onChange={(e) => onChange('category', (e.target.value as SkillCategory) || null)}
+            className="mt-1 w-full px-2.5 py-1.5 text-sm border border-input bg-background focus:outline-none focus:ring-1 focus:ring-ring"
+          >
+            <option value="">Uncategorized</option>
+            {SKILL_CATEGORIES.filter((c) => c.value !== '').map((c) => (
+              <option key={c.value} value={c.value}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="text-xs font-medium text-muted-foreground">
+            Skill Type
+          </label>
+          <select
+            value={skill.skill_type || ''}
+            onChange={(e) => onChange('skill_type', (e.target.value as SkillType) || null)}
+            className="mt-1 w-full px-2.5 py-1.5 text-sm border border-input bg-background focus:outline-none focus:ring-1 focus:ring-ring"
+          >
+            <option value="">Not set</option>
+            {SKILL_TYPES.map((t) => (
+              <option key={t.value} value={t.value}>
+                {t.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="text-xs font-medium text-muted-foreground">
@@ -179,6 +218,12 @@ export function FrontmatterForm({ skill, onChange, projectSkills }: FrontmatterF
         onChange={(conditions) => onChange('conditions', conditions)}
       />
 
+      {/* Gotchas */}
+      <GotchasSection
+        gotchas={(skill.gotchas as string | null) ?? null}
+        onChange={(gotchas) => onChange('gotchas', gotchas)}
+      />
+
       {/* Template Variables Definitions */}
       <TemplateVariablesEditor
         variables={(skill.template_variables as TemplateVariable[]) || []}
@@ -246,6 +291,49 @@ function ConditionsSection({
       {expanded && (
         <div className="mt-2">
           <ConditionsEditor conditions={conditions} onChange={onChange} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+function GotchasSection({
+  gotchas,
+  onChange,
+}: {
+  gotchas: string | null
+  onChange: (gotchas: string | null) => void
+}) {
+  const [expanded, setExpanded] = useState(!!gotchas)
+  const hasGotchas = !!gotchas?.trim()
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setExpanded(!expanded)}
+        className="text-xs font-medium text-muted-foreground flex items-center gap-1 hover:text-foreground transition-all duration-150"
+      >
+        <AlertTriangle className="h-3 w-3" />
+        Gotchas
+        {hasGotchas && (
+          <span className="text-[10px] px-1.5 py-0.5 bg-amber-500/10 text-amber-500 font-mono">
+            defined
+          </span>
+        )}
+      </button>
+      {expanded && (
+        <div className="mt-2">
+          <textarea
+            value={gotchas || ''}
+            onChange={(e) => onChange(e.target.value || null)}
+            className="w-full px-2.5 py-1.5 text-xs border border-input bg-background focus:outline-none focus:ring-1 focus:ring-ring resize-y min-h-[60px] font-mono"
+            placeholder="Common failure points, edge cases, and pitfalls the agent should watch for..."
+            rows={3}
+          />
+          <p className="text-[10px] text-muted-foreground mt-1">
+            Gotcha sections are the highest-signal content in any skill.
+          </p>
         </div>
       )}
     </div>

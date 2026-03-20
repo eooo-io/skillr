@@ -23,7 +23,11 @@ class ClineDriver implements ProviderDriverInterface
                 $output .= "> **Applies to:** `{$patterns}`\n\n";
             }
 
-            $output .= "{$body}\n\n---\n\n";
+            $output .= "{$body}\n\n";
+            if (! empty($skill->gotchas)) {
+                $output .= "## Common Gotchas\n\n{$skill->gotchas}\n\n";
+            }
+            $output .= "---\n\n";
         }
 
         if (! empty($composedAgents)) {

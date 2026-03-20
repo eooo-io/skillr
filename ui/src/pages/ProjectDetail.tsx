@@ -39,6 +39,7 @@ import { ImportBundleModal } from '@/components/bundles/ImportBundleModal'
 import { SyncPreviewModal } from '@/components/sync/SyncPreviewModal'
 import { BulkActionBar } from '@/components/skills/BulkActionBar'
 import { Button } from '@/components/ui/button'
+import { SKILL_CATEGORIES, getCategoryOption } from '@/constants/categories'
 import type { Project, Skill, GeneratedSkill } from '@/types'
 
 export function ProjectDetail() {
@@ -56,6 +57,8 @@ export function ProjectDetail() {
   const [showSyncPreview, setShowSyncPreview] = useState(false)
   const [selectMode, setSelectMode] = useState(false)
   const [selectedSkillIds, setSelectedSkillIds] = useState<Set<number>>(new Set())
+  const [categoryFilter, setCategoryFilter] = useState('')
+  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set())
   const navigate = useNavigate()
   const { setActiveProjectId, showToast, loadProjects } = useAppStore()
 
@@ -313,99 +316,185 @@ export function ProjectDetail() {
         </button>
       </div>
 
-      {activeTab === 'skills' && (
-        <>
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-sm text-muted-foreground">
-              {skills.length} skill{skills.length !== 1 && 's'}
-              {project.synced_at && (
-                <span className="ml-2">
-                  &middot; Last synced{' '}
-                  {new Date(project.synced_at).toLocaleDateString()}
-                </span>
-              )}
-            </p>
-            <div className="flex items-center gap-2">
-              {selectMode && skills.length > 0 && (
-                <div className="flex items-center gap-1">
-                  <Button variant="ghost" size="sm" onClick={selectAll}>
-                    <CheckCheck className="h-4 w-4 mr-1" />
-                    All
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={deselectAll}>
-                    <Square className="h-4 w-4 mr-1" />
-                    None
-                  </Button>
-                </div>
-              )}
-              <Button
-                variant={selectMode ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => {
-                  setSelectMode(!selectMode)
-                  if (selectMode) setSelectedSkillIds(new Set())
-                }}
-              >
-                <CheckSquare className="h-4 w-4 mr-1" />
-                {selectMode ? 'Exit Select' : 'Select'}
-              </Button>
-              <div className="flex items-center border border-border">
-                <button
-                  onClick={() => setViewMode('grid')}
-                  className={`p-1.5 ${viewMode === 'grid' ? 'bg-accent' : ''}`}
-                >
-                  <LayoutGrid className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={() => setViewMode('list')}
-                  className={`p-1.5 ${viewMode === 'list' ? 'bg-accent' : ''}`}
-                >
-                  <List className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          </div>
+      {activeTab === 'skills' && (() => {
+        const filteredSkills = categoryFilter
+          ? skills.filter((s) => (s.category || 'general') === categoryFilter)
+          : skills
 
-          {skills.length === 0 ? (
-            <div className="text-center py-16 text-muted-foreground">
-              <p>No skills yet.</p>
-              <div className="flex items-center justify-center gap-3 mt-2">
-                <Link
-                  to={`/skills/new?project_id=${project.id}`}
-                  className="text-primary underline text-sm"
+        // Group skills by category
+        const grouped = new Map<string, Skill[]>()
+        for (const skill of filteredSkills) {
+          const cat = skill.category || 'general'
+          if (!grouped.has(cat)) grouped.set(cat, [])
+          grouped.get(cat)!.push(skill)
+        }
+
+        // Sort groups by SKILL_CATEGORIES order
+        const categoryOrder = SKILL_CATEGORIES.filter((c) => c.value !== '').map((c) => c.value)
+        const sortedGroups = [...grouped.entries()].sort(
+          (a, b) => categoryOrder.indexOf(a[0]) - categoryOrder.indexOf(b[0]),
+        )
+
+        const toggleCategory = (cat: string) => {
+          setCollapsedCategories((prev) => {
+            const next = new Set(prev)
+            if (next.has(cat)) next.delete(cat)
+            else next.add(cat)
+            return next
+          })
+        }
+
+        return (
+          <>
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-sm text-muted-foreground">
+                {filteredSkills.length} skill{filteredSkills.length !== 1 && 's'}
+                {project.synced_at && (
+                  <span className="ml-2">
+                    &middot; Last synced{' '}
+                    {new Date(project.synced_at).toLocaleDateString()}
+                  </span>
+                )}
+              </p>
+              <div className="flex items-center gap-2">
+                <select
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  className="px-2 py-1 text-xs border border-input bg-background focus:outline-none focus:ring-1 focus:ring-ring"
                 >
-                  Create your first skill
-                </Link>
-                <span className="text-xs">or</span>
-                <button
-                  onClick={() => setShowLibrary(true)}
-                  className="text-primary underline text-sm"
+                  {SKILL_CATEGORIES.map((c) => (
+                    <option key={c.value} value={c.value}>
+                      {c.value === '' ? 'All Categories' : c.label}
+                    </option>
+                  ))}
+                </select>
+                {selectMode && skills.length > 0 && (
+                  <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="sm" onClick={selectAll}>
+                      <CheckCheck className="h-4 w-4 mr-1" />
+                      All
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={deselectAll}>
+                      <Square className="h-4 w-4 mr-1" />
+                      None
+                    </Button>
+                  </div>
+                )}
+                <Button
+                  variant={selectMode ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => {
+                    setSelectMode(!selectMode)
+                    if (selectMode) setSelectedSkillIds(new Set())
+                  }}
                 >
-                  import from library
-                </button>
+                  <CheckSquare className="h-4 w-4 mr-1" />
+                  {selectMode ? 'Exit Select' : 'Select'}
+                </Button>
+                <div className="flex items-center border border-border">
+                  <button
+                    onClick={() => setViewMode('grid')}
+                    className={`p-1.5 ${viewMode === 'grid' ? 'bg-accent' : ''}`}
+                  >
+                    <LayoutGrid className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => setViewMode('list')}
+                    className={`p-1.5 ${viewMode === 'list' ? 'bg-accent' : ''}`}
+                  >
+                    <List className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             </div>
-          ) : (
-            <div
-              className={
-                viewMode === 'grid'
-                  ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3'
-                  : 'space-y-2'
-              }
-            >
-              {skills.map((skill) => (
-                <SkillCard
-                  key={skill.id}
-                  skill={skill}
-                  selectable={selectMode}
-                  selected={selectedSkillIds.has(skill.id)}
-                  onToggleSelect={toggleSkillSelection}
-                />
-              ))}
-            </div>
-          )}
-        </>
-      )}
+
+            {filteredSkills.length === 0 ? (
+              <div className="text-center py-16 text-muted-foreground">
+                <p>No skills yet.</p>
+                <div className="flex items-center justify-center gap-3 mt-2">
+                  <Link
+                    to={`/skills/new?project_id=${project.id}`}
+                    className="text-primary underline text-sm"
+                  >
+                    Create your first skill
+                  </Link>
+                  <span className="text-xs">or</span>
+                  <button
+                    onClick={() => setShowLibrary(true)}
+                    className="text-primary underline text-sm"
+                  >
+                    import from library
+                  </button>
+                </div>
+              </div>
+            ) : sortedGroups.length === 1 ? (
+              // Single category — render flat (no group headers)
+              <div
+                className={
+                  viewMode === 'grid'
+                    ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3'
+                    : 'space-y-2'
+                }
+              >
+                {sortedGroups[0][1].map((skill) => (
+                  <SkillCard
+                    key={skill.id}
+                    skill={skill}
+                    selectable={selectMode}
+                    selected={selectedSkillIds.has(skill.id)}
+                    onToggleSelect={toggleSkillSelection}
+                  />
+                ))}
+              </div>
+            ) : (
+              // Multiple categories — render with collapsible group headers
+              <div className="space-y-4">
+                {sortedGroups.map(([cat, catSkills]) => {
+                  const catOption = getCategoryOption(cat)
+                  const isCollapsed = collapsedCategories.has(cat)
+                  return (
+                    <div key={cat}>
+                      <button
+                        onClick={() => toggleCategory(cat)}
+                        className="flex items-center gap-2 mb-2 text-sm font-medium text-foreground hover:text-primary transition-all duration-150"
+                      >
+                        <span className={`text-[10px] px-1.5 py-0.5 ${catOption?.color || 'bg-muted text-muted-foreground'}`}>
+                          {catOption?.label || cat}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {catSkills.length} skill{catSkills.length !== 1 && 's'}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {isCollapsed ? '▸' : '▾'}
+                        </span>
+                      </button>
+                      {!isCollapsed && (
+                        <div
+                          className={
+                            viewMode === 'grid'
+                              ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3'
+                              : 'space-y-2'
+                          }
+                        >
+                          {catSkills.map((skill) => (
+                            <SkillCard
+                              key={skill.id}
+                              skill={skill}
+                              selectable={selectMode}
+                              selected={selectedSkillIds.has(skill.id)}
+                              onToggleSelect={toggleSkillSelection}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </>
+        )
+      })()}
 
       {activeTab === 'agents' && (
         <AgentsTab projectId={project.id} skills={skills} />

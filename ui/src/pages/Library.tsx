@@ -13,17 +13,8 @@ import { fetchLibrary, importLibrarySkill, fetchProjects } from '@/api/client'
 import { useAppStore } from '@/store/useAppStore'
 import { SkillsShImportModal } from '@/components/library/SkillsShImportModal'
 import { Button } from '@/components/ui/button'
+import { SKILL_CATEGORIES, getCategoryOption } from '@/constants/categories'
 import type { LibrarySkill, Project } from '@/types'
-
-const CATEGORIES = [
-  { label: 'All', value: '' },
-  { label: 'Laravel', value: 'Laravel' },
-  { label: 'PHP', value: 'PHP' },
-  { label: 'TypeScript', value: 'TypeScript' },
-  { label: 'FinTech', value: 'FinTech' },
-  { label: 'DevOps', value: 'DevOps' },
-  { label: 'Writing', value: 'Writing' },
-]
 
 export function Library() {
   const [skills, setSkills] = useState<LibrarySkill[]>([])
@@ -83,7 +74,7 @@ export function Library() {
           Categories
         </h3>
         <nav className="flex md:flex-col gap-0.5 overflow-x-auto md:overflow-x-visible px-4 py-2 md:p-0">
-          {CATEGORIES.map((cat) => (
+          {SKILL_CATEGORIES.map((cat) => (
             <button
               key={cat.value}
               onClick={() => setCategory(cat.value)}
@@ -173,11 +164,14 @@ export function Library() {
                 </div>
 
                 <div className="flex items-center gap-2 mt-3 flex-wrap">
-                  {skill.category && (
-                    <span className="text-[10px] px-1.5 py-0.5 bg-primary/10 text-primary font-medium">
-                      {skill.category}
-                    </span>
-                  )}
+                  {skill.category && (() => {
+                    const cat = getCategoryOption(skill.category)
+                    return (
+                      <span className={`text-[10px] px-1.5 py-0.5 font-medium ${cat?.color || 'bg-primary/10 text-primary'}`}>
+                        {cat?.label || skill.category}
+                      </span>
+                    )
+                  })()}
                   {skill.tags?.map((tag) => (
                     <span
                       key={tag}

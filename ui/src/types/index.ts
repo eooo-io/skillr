@@ -23,6 +23,20 @@ export interface SkillVariableValue {
   value: string | null
 }
 
+export type SkillCategory =
+  | 'library-api-reference'
+  | 'product-verification'
+  | 'data-analysis'
+  | 'business-automation'
+  | 'scaffolding-templates'
+  | 'code-quality-review'
+  | 'ci-cd-deployment'
+  | 'incident-runbooks'
+  | 'infrastructure-ops'
+  | 'general'
+
+export type SkillType = 'capability-uplift' | 'encoded-preference'
+
 export interface Skill {
   id: number
   uuid: string
@@ -30,6 +44,8 @@ export interface Skill {
   slug: string
   name: string
   description: string | null
+  category: SkillCategory | null
+  skill_type: SkillType | null
   model: string | null
   max_tokens: number | null
   tools: string[]
@@ -37,6 +53,9 @@ export interface Skill {
   conditions: SkillConditions | null
   template_variables: TemplateVariable[] | null
   body: string
+  gotchas: string | null
+  supplementary_files: Array<{ path: string; content: string }>
+  has_folder: boolean
   resolved_body: string
   tags: string[]
   token_estimate: number
@@ -48,10 +67,13 @@ export interface Skill {
 export interface GeneratedSkill {
   name: string
   description: string
+  category: SkillCategory | null
+  skill_type: SkillType | null
   model: string | null
   max_tokens: number | null
   tags: string[]
   body: string
+  gotchas: string | null
 }
 
 export interface SkillVersion {

@@ -166,6 +166,8 @@ class BundleExportService
             'id' => $skill->slug,
             'name' => $skill->name,
             'description' => $skill->description,
+            'category' => $skill->category,
+            'skill_type' => $skill->skill_type,
             'tags' => $skill->tags->pluck('name')->values()->all(),
             'model' => $skill->model,
             'max_tokens' => $skill->max_tokens,

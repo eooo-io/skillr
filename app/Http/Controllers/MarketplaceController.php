@@ -129,10 +129,13 @@ class MarketplaceController extends Controller
                 'slug' => $slug,
                 'name' => $marketplaceSkill->name,
                 'description' => $marketplaceSkill->description,
+                'category' => $marketplaceSkill->category,
+                'skill_type' => $marketplaceSkill->frontmatter['skill_type'] ?? null,
                 'model' => $marketplaceSkill->frontmatter['model'] ?? null,
                 'max_tokens' => $marketplaceSkill->frontmatter['max_tokens'] ?? null,
                 'tools' => $marketplaceSkill->frontmatter['tools'] ?? [],
                 'body' => $marketplaceSkill->body,
+                'gotchas' => $marketplaceSkill->frontmatter['gotchas'] ?? null,
             ]);
 
             // Sync tags
@@ -161,6 +164,8 @@ class MarketplaceController extends Controller
                 'id' => $slug,
                 'name' => $skill->name,
                 'description' => $skill->description,
+                'category' => $skill->category,
+                'skill_type' => $skill->skill_type,
                 'tags' => $marketplaceSkill->tags ?? [],
                 'model' => $skill->model,
                 'max_tokens' => $skill->max_tokens,

@@ -53,6 +53,41 @@ class SkillCompositionService
     }
 
     /**
+     * Resolve a skill at a specific progressive disclosure level.
+     *
+     * Level 1: Name + description (~100 tokens, for agent discovery)
+     * Level 2: Full resolved body (standard compose behavior)
+     * Level 3: Body + gotchas + supplementary files (deep context)
+     */
+    public function resolveAtLevel(Skill $skill, int $level = 2): string
+    {
+        return match ($level) {
+            1 => "{$skill->name}: " . ($skill->description ?? 'No description'),
+            3 => $this->resolveLevel3($skill),
+            default => $this->resolve($skill),
+        };
+    }
+
+    protected function resolveLevel3(Skill $skill): string
+    {
+        $sections = [$this->resolve($skill)];
+
+        if (! empty($skill->gotchas)) {
+            $sections[] = "## Common Gotchas\n\n{$skill->gotchas}";
+        }
+
+        foreach ($skill->supplementary_files ?? [] as $file) {
+            $path = $file['path'] ?? 'unknown';
+            $content = $file['content'] ?? '';
+            if (! empty($content)) {
+                $sections[] = "## {$path}\n\n{$content}";
+            }
+        }
+
+        return implode("\n\n", array_filter($sections));
+    }
+
+    /**
      * Validate includes for a skill and return errors.
      *
      * @return string[]

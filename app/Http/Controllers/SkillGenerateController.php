@@ -30,11 +30,14 @@ You are an expert AI prompt engineer. The user will describe what they want a sk
 Return ONLY valid JSON with this exact structure:
 {
   "name": "Short descriptive name",
-  "description": "One-sentence description of what the skill does",
+  "description": "One-sentence description of what the skill does — be specific enough that an agent knows exactly when to use it",
+  "category": "one of: library-api-reference, product-verification, data-analysis, business-automation, scaffolding-templates, code-quality-review, ci-cd-deployment, incident-runbooks, infrastructure-ops, general",
+  "skill_type": "either capability-uplift (teaches something the model can't do well) or encoded-preference (sequences steps per team process)",
   "model": null,
   "max_tokens": null,
   "tags": ["tag1", "tag2"],
-  "body": "The full system prompt text..."
+  "body": "The full system prompt text...",
+  "gotchas": "Common failure points and edge cases the agent should watch for"
 }
 
 Guidelines for the body (system prompt):
@@ -44,6 +47,7 @@ Guidelines for the body (system prompt):
 - Keep instructions focused — avoid contradictory directives
 - Include relevant constraints and boundaries
 - Aim for 200-800 words depending on complexity
+- Include a gotchas section for common pitfalls
 
 Do not wrap the JSON in markdown code fences. Return raw JSON only.
 PROMPT;

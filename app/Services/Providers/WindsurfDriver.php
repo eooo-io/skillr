@@ -27,6 +27,9 @@ class WindsurfDriver implements ProviderDriverInterface
             }
 
             $content .= "{$body}\n";
+            if (! empty($skill->gotchas)) {
+                $content .= "\n## Common Gotchas\n\n{$skill->gotchas}\n";
+            }
             $files[$dir . '/' . $skill->slug . '.md'] = $content;
         }
 

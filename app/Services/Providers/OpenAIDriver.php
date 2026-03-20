@@ -14,7 +14,11 @@ class OpenAIDriver implements ProviderDriverInterface
 
         foreach ($skills as $skill) {
             $body = $resolvedBodies[$skill->id] ?? $skill->body;
-            $output .= "## {$skill->name}\n\n{$body}\n\n---\n\n";
+            $output .= "## {$skill->name}\n\n{$body}\n\n";
+            if (! empty($skill->gotchas)) {
+                $output .= "### Common Gotchas\n\n{$skill->gotchas}\n\n";
+            }
+            $output .= "---\n\n";
         }
 
         if (! empty($composedAgents)) {

@@ -29,12 +29,15 @@ export function SkillEditor() {
   const [skill, setSkill] = useState<Partial<Skill>>({
     name: '',
     description: null,
+    category: null,
+    skill_type: null,
     model: null,
     max_tokens: null,
     tools: [],
     includes: [],
     template_variables: null,
     body: '',
+    gotchas: null,
     tags: [],
     project_id: projectId ? parseInt(projectId) : undefined,
   })
