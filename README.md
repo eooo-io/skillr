@@ -51,7 +51,62 @@ skillr add "Code Review Standards"
 skillr sync
 ```
 
-That's it. Your skill is now in `.claude/CLAUDE.md`, `.cursor/rules/code-review-standards.mdc`, `.github/copilot-instructions.md`, and every other provider you've enabled.
+That's it. Here's what just happened:
+
+**Your skill** (`.skillr/skills/code-review-standards.md`):
+
+```markdown
+---
+id: code-review-standards
+name: Code Review Standards
+description: Enforce team code review conventions
+tags: [code-quality]
+---
+
+All public functions must have JSDoc.
+Prefer composition over inheritance.
+No `any` types in TypeScript.
+```
+
+**Generated output** after `skillr sync`:
+
+`.claude/CLAUDE.md`:
+```markdown
+## Code Review Standards
+
+All public functions must have JSDoc.
+Prefer composition over inheritance.
+No `any` types in TypeScript.
+
+---
+```
+
+`.cursor/rules/code-review-standards.mdc`:
+```yaml
+---
+description: Enforce team code review conventions
+alwaysApply: true
+tags:
+  - code-quality
+---
+
+All public functions must have JSDoc.
+Prefer composition over inheritance.
+No `any` types in TypeScript.
+```
+
+`.github/copilot-instructions.md`:
+```markdown
+## Code Review Standards
+
+All public functions must have JSDoc.
+Prefer composition over inheritance.
+No `any` types in TypeScript.
+
+---
+```
+
+Same instructions, every tool's native format, from one source file.
 
 ### Already have AI instructions?
 

@@ -37,6 +37,52 @@ skillr add "Code Review Standards"
 skillr sync
 ```
 
+## What It Does
+
+**Input** — you write one skill file (`.skillr/skills/code-review.md`):
+
+```markdown
+---
+id: code-review
+name: Code Review Standards
+description: Enforce team code review conventions
+tags: [code-quality]
+---
+
+All public functions must have JSDoc.
+Prefer composition over inheritance.
+No `any` types in TypeScript.
+```
+
+**Output** — `skillr sync` generates each provider's native format:
+
+`.claude/CLAUDE.md`:
+```markdown
+## Code Review Standards
+
+All public functions must have JSDoc.
+Prefer composition over inheritance.
+No `any` types in TypeScript.
+
+---
+```
+
+`.cursor/rules/code-review.mdc`:
+```yaml
+---
+description: Enforce team code review conventions
+alwaysApply: true
+tags:
+  - code-quality
+---
+
+All public functions must have JSDoc.
+Prefer composition over inheritance.
+No `any` types in TypeScript.
+```
+
+Same instructions, every tool's native format, from one source file.
+
 ## Skill Format
 
 A skill is a Markdown file with YAML frontmatter:
