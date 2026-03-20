@@ -43,7 +43,7 @@ Skillr supports multi-tenant organizations. Each user can belong to multiple org
 
 | Role | Permissions |
 |---|---|
-| **Owner** | Full access, can delete organization, manage billing |
+| **Owner** | Full access, can delete organization, manage members |
 | **Admin** | Manage members, projects, and settings |
 | **Editor** | Create and edit skills, run syncs |
 | **Viewer** | Read-only access to projects and skills |

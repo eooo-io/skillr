@@ -42,7 +42,6 @@ The React SPA (`ui/`), `.skillr/` file format, and all provider sync output form
 | Admin UI | Filament 3 | Absorbed into React SPA |
 | Auth | Laravel session | Passport.js + express-session |
 | Queues | Laravel Jobs | BullMQ (hosted) / in-process (desktop) |
-| Billing | Laravel Cashier | stripe-node SDK |
 | YAML | symfony/yaml | js-yaml |
 | Git ops | Shell commands | simple-git |
 | SSE | Manual response streaming | NestJS @Sse() decorator |
@@ -83,13 +82,12 @@ The React SPA (`ui/`), `.skillr/` file format, and all provider sync output form
 
 ### Phase 3: Ecosystem — [Milestone](https://github.com/eooo-io/skillr/milestone/3)
 
-**Goal:** Library, marketplace, agents, bundles, search, webhooks.
+**Goal:** Library, agents, bundles, search, webhooks.
 
 | # | Issue | Status |
 |---|---|---|
 | #17 | Agents module — compose, toggle, assign skills | |
 | #18 | Library module — browse and import | |
-| #19 | Marketplace module — publish, install, vote | |
 | #20 | Search module — cross-project full-text search | |
 | #21 | Bundles module — ZIP/JSON export and import | |
 | #22 | Webhooks module — CRUD, HMAC delivery, event dispatch | |
@@ -99,11 +97,10 @@ The React SPA (`ui/`), `.skillr/` file format, and all provider sync output form
 
 ### Phase 4: Platform — [Milestone](https://github.com/eooo-io/skillr/milestone/4)
 
-**Goal:** Billing, repositories, advanced features, self-contained desktop app.
+**Goal:** Repositories, advanced features, self-contained desktop app.
 
 | # | Issue | Status |
 |---|---|---|
-| #26 | Billing module — Stripe subscriptions, usage, Connect | |
 | #27 | Repositories module — GitHub/GitLab connect, pull, push | |
 | #28 | MCP servers — CRUD | |
 | #29 | A2A agents — CRUD | |
@@ -168,7 +165,7 @@ The original Laravel implementation built the full Component Layer:
 - 24 Eloquent models, 28 controllers, 34 services
 - 7 provider sync drivers (Claude, Cursor, Copilot, Windsurf, Cline, OpenAI, OpenClaw)
 - 4 LLM providers (Anthropic, OpenAI, Gemini, Ollama) with streaming
-- Multi-tenant organizations, Stripe billing, marketplace
+- Multi-tenant organizations with role-based access
 - React SPA with 14 pages, Monaco editor, D3 visualizations
 - Authorization policies, rate limiting, webhook encryption
 
