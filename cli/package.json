@@ -1,0 +1,58 @@
+{
+  "name": "skillr",
+  "version": "0.1.0",
+  "description": "Portable AI instruction format with cross-provider sync",
+  "type": "module",
+  "bin": {
+    "skillr": "./dist/cli.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/cli.ts",
+    "test": "vitest",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "ai",
+    "skills",
+    "prompts",
+    "claude",
+    "cursor",
+    "copilot",
+    "windsurf",
+    "cline",
+    "openai",
+    "sync",
+    "config"
+  ],
+  "author": "eooo.io",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eooo-io/skillr.git",
+    "directory": "cli"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "commander": "^13.1.0",
+    "fast-glob": "^3.3.3",
+    "js-yaml": "^4.1.0",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.13.14",
+    "@types/uuid": "^10.0.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2",
+    "vitest": "^3.1.1"
+  }
+}
