@@ -11,17 +11,8 @@ import {
 import { fetchLibrary, importLibrarySkill } from '@/api/client'
 import { useAppStore } from '@/store/useAppStore'
 import { Button } from '@/components/ui/button'
+import { SKILL_CATEGORIES, getCategoryOption } from '@/constants/categories'
 import type { LibrarySkill } from '@/types'
-
-const CATEGORIES = [
-  { label: 'All', value: '' },
-  { label: 'Laravel', value: 'Laravel' },
-  { label: 'PHP', value: 'PHP' },
-  { label: 'TypeScript', value: 'TypeScript' },
-  { label: 'FinTech', value: 'FinTech' },
-  { label: 'DevOps', value: 'DevOps' },
-  { label: 'Writing', value: 'Writing' },
-]
 
 interface ImportLibraryModalProps {
   projectId: number
@@ -111,7 +102,7 @@ export function ImportLibraryModal({
             />
           </div>
           <div className="flex items-center gap-1.5 flex-wrap">
-            {CATEGORIES.map((cat) => (
+            {SKILL_CATEGORIES.map((cat) => (
               <button
                 key={cat.value}
                 onClick={() => setCategory(cat.value)}
@@ -153,11 +144,14 @@ export function ImportLibraryModal({
                         <h3 className="text-sm font-medium truncate">
                           {skill.name}
                         </h3>
-                        {skill.category && (
-                          <span className="text-[10px] px-1.5 py-0.5 bg-primary/10 text-primary font-medium shrink-0">
-                            {skill.category}
-                          </span>
-                        )}
+                        {skill.category && (() => {
+                          const cat = getCategoryOption(skill.category)
+                          return (
+                            <span className={`text-[10px] px-1.5 py-0.5 font-medium shrink-0 ${cat?.color || 'bg-primary/10 text-primary'}`}>
+                              {cat?.label || skill.category}
+                            </span>
+                          )
+                        })()}
                       </div>
                       {skill.description && (
                         <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">

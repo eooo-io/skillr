@@ -171,12 +171,15 @@ class BundleImportService
                     'slug' => $fm['id'] ?? basename($name, '.md'),
                     'name' => $fm['name'] ?? basename($name, '.md'),
                     'description' => $fm['description'] ?? null,
+                    'category' => $fm['category'] ?? null,
+                    'skill_type' => $fm['skill_type'] ?? null,
                     'model' => $fm['model'] ?? null,
                     'max_tokens' => $fm['max_tokens'] ?? null,
                     'tools' => $fm['tools'] ?? [],
                     'includes' => $fm['includes'] ?? [],
                     'tags' => $fm['tags'] ?? [],
                     'body' => $parsed['body'],
+                    'gotchas' => $fm['gotchas'] ?? null,
                 ];
             }
         }
@@ -205,11 +208,14 @@ class BundleImportService
                     $existing->update([
                         'name' => $data['name'],
                         'description' => $data['description'] ?? null,
+                        'category' => $data['category'] ?? null,
+                        'skill_type' => $data['skill_type'] ?? null,
                         'model' => $data['model'] ?? null,
                         'max_tokens' => $data['max_tokens'] ?? null,
                         'tools' => $data['tools'] ?? [],
                         'includes' => $data['includes'] ?? [],
                         'body' => $data['body'] ?? '',
+                        'gotchas' => $data['gotchas'] ?? null,
                     ]);
                     $this->syncSkillTags($existing, $data['tags'] ?? []);
                     $this->createVersion($existing);
@@ -232,11 +238,14 @@ class BundleImportService
             'slug' => $slug,
             'name' => $data['name'],
             'description' => $data['description'] ?? null,
+            'category' => $data['category'] ?? null,
+            'skill_type' => $data['skill_type'] ?? null,
             'model' => $data['model'] ?? null,
             'max_tokens' => $data['max_tokens'] ?? null,
             'tools' => $data['tools'] ?? [],
             'includes' => $data['includes'] ?? [],
             'body' => $data['body'] ?? '',
+            'gotchas' => $data['gotchas'] ?? null,
         ]);
 
         $this->syncSkillTags($skill, $data['tags'] ?? []);
@@ -289,12 +298,15 @@ class BundleImportService
                 'id' => $skill->slug,
                 'name' => $skill->name,
                 'description' => $skill->description,
+                'category' => $skill->category,
+                'skill_type' => $skill->skill_type,
                 'model' => $skill->model,
                 'max_tokens' => $skill->max_tokens,
                 'tools' => $skill->tools,
                 'tags' => $skill->tags->pluck('name')->values()->all(),
             ],
             'body' => $skill->body,
+            'gotchas' => $skill->gotchas,
             'saved_at' => now(),
         ]);
     }
@@ -305,6 +317,8 @@ class BundleImportService
             'id' => $skill->slug,
             'name' => $skill->name,
             'description' => $skill->description,
+            'category' => $skill->category,
+            'skill_type' => $skill->skill_type,
             'tags' => $skill->tags->pluck('name')->values()->all(),
             'model' => $skill->model,
             'max_tokens' => $skill->max_tokens,
@@ -314,6 +328,12 @@ class BundleImportService
             'updated_at' => $skill->updated_at->toIso8601String(),
         ];
 
-        $this->manifestService->writeSkillFile($project->resolved_path, $frontmatter, $skill->body ?? '');
+        $this->manifestService->writeSkillFile(
+            $project->resolved_path,
+            $frontmatter,
+            $skill->body ?? '',
+            $skill->gotchas,
+            $skill->supplementary_files ?? [],
+        );
     }
 }

@@ -59,10 +59,13 @@ class LibraryController extends Controller
             'slug' => $slug,
             'name' => $librarySkill->name,
             'description' => $librarySkill->description,
+            'category' => $librarySkill->category,
+            'skill_type' => $librarySkill->frontmatter['skill_type'] ?? null,
             'model' => $librarySkill->frontmatter['model'] ?? null,
             'max_tokens' => $librarySkill->frontmatter['max_tokens'] ?? null,
             'tools' => $librarySkill->frontmatter['tools'] ?? [],
             'body' => $librarySkill->body,
+            'gotchas' => $librarySkill->frontmatter['gotchas'] ?? null,
         ]);
 
         // Sync tags
@@ -91,6 +94,8 @@ class LibraryController extends Controller
             'id' => $slug,
             'name' => $skill->name,
             'description' => $skill->description,
+            'category' => $skill->category,
+            'skill_type' => $skill->skill_type,
             'tags' => $librarySkill->tags ?? [],
             'model' => $skill->model,
             'max_tokens' => $skill->max_tokens,

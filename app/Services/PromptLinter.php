@@ -9,7 +9,10 @@ class PromptLinter
      *
      * @return array<int, array{severity: string, rule: string, message: string, suggestion: string, line: int|null}>
      */
-    public function lint(string $body): array
+    /**
+     * @param  array{description?: string|null, gotchas?: string|null, skill_type?: string|null}  $context
+     */
+    public function lint(string $body, array $context = []): array
     {
         if (empty(trim($body))) {
             return [[
@@ -32,6 +35,9 @@ class PromptLinter
         $this->checkRoleConfusion($body, $issues);
         $this->checkMissingExamples($body, $issues);
         $this->checkRedundancy($lines, $issues);
+        $this->checkMissingGotchas($body, $context['gotchas'] ?? null, $issues);
+        $this->checkVagueDescription($context['description'] ?? null, $issues);
+        $this->checkMissingSkillType($context['skill_type'] ?? null, $issues);
 
         return $issues;
     }
@@ -197,6 +203,80 @@ class PromptLinter
             }
 
             $normalized[] = [$idx, $trimmed];
+        }
+    }
+
+    protected function checkMissingGotchas(string $body, ?string $gotchas, array &$issues): void
+    {
+        $tokens = (int) ceil(mb_strlen($body) / 4);
+
+        if ($tokens <= 500) {
+            return;
+        }
+
+        $hasGotchasField = ! empty(trim($gotchas ?? ''));
+        $hasGotchasSection = preg_match('/^##\s*(gotchas|common pitfalls|common mistakes|failure points)/im', $body);
+
+        if (! $hasGotchasField && ! $hasGotchasSection) {
+            $issues[] = [
+                'severity' => 'suggestion',
+                'rule' => 'missing_gotchas',
+                'message' => 'Complex skill without gotchas. Gotcha sections are the highest-signal content in any skill.',
+                'suggestion' => 'Add common failure points and edge cases to the gotchas field.',
+                'line' => null,
+            ];
+        }
+    }
+
+    protected function checkVagueDescription(?string $description, array &$issues): void
+    {
+        if ($description === null) {
+            return;
+        }
+
+        $trimmed = trim($description);
+
+        if (mb_strlen($trimmed) > 0 && mb_strlen($trimmed) < 20) {
+            $issues[] = [
+                'severity' => 'warning',
+                'rule' => 'vague_description',
+                'message' => 'Skill description is too short. Vague descriptions cause poor agent triggering.',
+                'suggestion' => 'Write a specific description that tells the agent exactly when this skill applies.',
+                'line' => null,
+            ];
+
+            return;
+        }
+
+        $vaguePatterns = [
+            '/^(helps? with|does stuff|general purpose|useful for|a skill that|this skill)/i',
+        ];
+
+        foreach ($vaguePatterns as $pattern) {
+            if (preg_match($pattern, $trimmed)) {
+                $issues[] = [
+                    'severity' => 'warning',
+                    'rule' => 'vague_description',
+                    'message' => 'Skill description may be too generic for reliable agent triggering.',
+                    'suggestion' => 'Write a specific description that tells the agent exactly when this skill applies.',
+                    'line' => null,
+                ];
+
+                return;
+            }
+        }
+    }
+
+    protected function checkMissingSkillType(?string $skillType, array &$issues): void
+    {
+        if (empty($skillType)) {
+            $issues[] = [
+                'severity' => 'suggestion',
+                'rule' => 'missing_skill_type',
+                'message' => 'No skill type set. Classifying as "capability uplift" or "encoded preference" helps with testing strategy.',
+                'suggestion' => 'Set skill type to clarify whether this skill teaches new capabilities or encodes team processes.',
+                'line' => null,
+            ];
         }
     }
 }

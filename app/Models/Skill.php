@@ -10,17 +10,39 @@ use Illuminate\Support\Str;
 
 class Skill extends Model
 {
+    public const CATEGORIES = [
+        'library-api-reference',
+        'product-verification',
+        'data-analysis',
+        'business-automation',
+        'scaffolding-templates',
+        'code-quality-review',
+        'ci-cd-deployment',
+        'incident-runbooks',
+        'infrastructure-ops',
+        'general',
+    ];
+
+    public const SKILL_TYPES = [
+        'capability-uplift',
+        'encoded-preference',
+    ];
+
     protected $fillable = [
         'uuid',
         'project_id',
         'slug',
         'name',
         'description',
+        'category',
+        'skill_type',
         'model',
         'max_tokens',
         'tools',
         'includes',
         'body',
+        'gotchas',
+        'supplementary_files',
         'conditions',
         'template_variables',
     ];
@@ -30,6 +52,7 @@ class Skill extends Model
         return [
             'tools' => 'array',
             'includes' => 'array',
+            'supplementary_files' => 'array',
             'conditions' => 'array',
             'template_variables' => 'array',
             'max_tokens' => 'integer',

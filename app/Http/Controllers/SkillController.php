@@ -6,6 +6,7 @@ use App\Http\Resources\SkillResource;
 use App\Models\Project;
 use App\Models\Skill;
 use App\Models\Tag;
+use Illuminate\Validation\Rule;
 use App\Services\SkillrManifestService;
 use App\Services\GitService;
 use App\Services\PromptLinter;
@@ -41,12 +42,15 @@ class SkillController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
+            'category' => ['nullable', 'string', Rule::in(Skill::CATEGORIES)],
+            'skill_type' => ['nullable', 'string', Rule::in(Skill::SKILL_TYPES)],
             'model' => 'nullable|string|max:100',
             'max_tokens' => 'nullable|integer|min:1',
             'tools' => 'nullable|array',
             'includes' => 'nullable|array',
             'includes.*' => 'string|max:100',
             'body' => 'nullable|string',
+            'gotchas' => 'nullable|string',
             'conditions' => 'nullable|array',
             'conditions.file_patterns' => 'nullable|array',
             'conditions.file_patterns.*' => 'string|max:200',
@@ -72,11 +76,14 @@ class SkillController extends Controller
             'slug' => $slug,
             'name' => $validated['name'],
             'description' => $validated['description'] ?? null,
+            'category' => $validated['category'] ?? null,
+            'skill_type' => $validated['skill_type'] ?? null,
             'model' => $validated['model'] ?? null,
             'max_tokens' => $validated['max_tokens'] ?? null,
             'tools' => $validated['tools'] ?? [],
             'includes' => $validated['includes'] ?? [],
             'body' => $validated['body'] ?? '',
+            'gotchas' => $validated['gotchas'] ?? null,
             'conditions' => $validated['conditions'] ?? null,
             'template_variables' => $validated['template_variables'] ?? null,
         ]);
@@ -103,12 +110,15 @@ class SkillController extends Controller
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string|max:1000',
+            'category' => ['nullable', 'string', Rule::in(Skill::CATEGORIES)],
+            'skill_type' => ['nullable', 'string', Rule::in(Skill::SKILL_TYPES)],
             'model' => 'nullable|string|max:100',
             'max_tokens' => 'nullable|integer|min:1',
             'tools' => 'nullable|array',
             'includes' => 'nullable|array',
             'includes.*' => 'string|max:100',
             'body' => 'nullable|string',
+            'gotchas' => 'nullable|string',
             'conditions' => 'nullable|array',
             'conditions.file_patterns' => 'nullable|array',
             'conditions.file_patterns.*' => 'string|max:200',
@@ -139,7 +149,11 @@ class SkillController extends Controller
     {
         $this->authorize('view', $skill);
 
-        $issues = $linter->lint($skill->body ?? '');
+        $issues = $linter->lint($skill->body ?? '', [
+            'description' => $skill->description,
+            'gotchas' => $skill->gotchas,
+            'skill_type' => $skill->skill_type,
+        ]);
 
         return response()->json(['data' => $issues]);
     }
@@ -180,11 +194,14 @@ class SkillController extends Controller
             'slug' => $slug,
             'name' => $newName,
             'description' => $skill->description,
+            'category' => $skill->category,
+            'skill_type' => $skill->skill_type,
             'model' => $skill->model,
             'max_tokens' => $skill->max_tokens,
             'tools' => $skill->tools,
             'includes' => $skill->includes,
             'body' => $skill->body,
+            'gotchas' => $skill->gotchas,
             'template_variables' => $skill->template_variables,
         ]);
 
@@ -214,6 +231,8 @@ class SkillController extends Controller
                 'id' => $skill->slug,
                 'name' => $skill->name,
                 'description' => $skill->description,
+                'category' => $skill->category,
+                'skill_type' => $skill->skill_type,
                 'model' => $skill->model,
                 'max_tokens' => $skill->max_tokens,
                 'tools' => $skill->tools,
@@ -221,6 +240,7 @@ class SkillController extends Controller
                 'template_variables' => $skill->template_variables,
             ],
             'body' => $skill->body,
+            'gotchas' => $skill->gotchas,
             'saved_at' => now(),
         ]);
     }
@@ -243,6 +263,8 @@ class SkillController extends Controller
             'id' => $skill->slug,
             'name' => $skill->name,
             'description' => $skill->description,
+            'category' => $skill->category,
+            'skill_type' => $skill->skill_type,
             'tags' => $skill->tags->pluck('name')->values()->all(),
             'model' => $skill->model,
             'max_tokens' => $skill->max_tokens,
@@ -254,7 +276,13 @@ class SkillController extends Controller
             'updated_at' => $skill->updated_at->toIso8601String(),
         ];
 
-        $this->manifestService->writeSkillFile($project->resolved_path, $frontmatter, $skill->body ?? '');
+        $this->manifestService->writeSkillFile(
+            $project->resolved_path,
+            $frontmatter,
+            $skill->body ?? '',
+            $skill->gotchas,
+            $skill->supplementary_files ?? [],
+        );
 
         // Auto-commit if enabled
         if ($project->git_auto_commit) {

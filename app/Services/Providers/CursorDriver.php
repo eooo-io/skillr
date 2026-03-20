@@ -36,6 +36,9 @@ class CursorDriver implements ProviderDriverInterface
 
             $yaml = Yaml::dump($frontmatter, 2, 2);
             $content = "---\n{$yaml}---\n\n{$body}\n";
+            if (! empty($skill->gotchas)) {
+                $content .= "\n## Common Gotchas\n\n{$skill->gotchas}\n";
+            }
 
             $files[$dir . '/' . $skill->slug . '.mdc'] = $content;
         }
