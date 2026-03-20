@@ -34,7 +34,7 @@ That's when I started building Skillr.
 
 The core insight was simple: **the instructions you give an AI coding assistant are not tool-specific.** Whether you're telling Claude, Cursor, Copilot, or Windsurf to "use TypeScript strict mode" or "follow our error handling patterns," the intent is the same. The only thing that differs is the file format and location where each tool expects to find those instructions.
 
-So what if you wrote your instructions once, in a single canonical format, and then generated each tool's native config from that source?
+So what if you wrote your instructions once, in a single canonical format, and then compiled each tool's native config from that source?
 
 That's the fundamental idea behind Skillr. You define "skills" — reusable prompt + configuration blocks — in a provider-agnostic format. Each skill is a Markdown file with YAML frontmatter, stored in a `.skillr/` directory:
 
@@ -53,7 +53,13 @@ Return consistent error response shapes from API endpoints:
 { "error": { "code": "...", "message": "..." } }
 ```
 
-This one file becomes:
+One command compiles this into every provider's native format:
+
+```bash
+npx @eooo/skillr sync
+```
+
+That single file becomes:
 - An H2 section in `.claude/CLAUDE.md` for Claude Code users
 - A `.cursor/rules/error-handling.mdc` file for Cursor users
 - A section in `.github/copilot-instructions.md` for Copilot users
@@ -62,6 +68,32 @@ This one file becomes:
 - A section in `.openai/instructions.md` for OpenAI users
 
 One source, every tool synchronized. When you update the skill, every provider config regenerates. When a new developer joins the team — regardless of which AI tool they prefer — they get the full set of team instructions on their first sync.
+
+---
+
+## Getting Started in 30 Seconds
+
+Skillr is a CLI tool. No Docker, no database, no web browser required.
+
+```bash
+npx @eooo/skillr init
+npx @eooo/skillr add "Error Handling Standards"
+# edit .skillr/skills/error-handling-standards.md
+npx @eooo/skillr sync
+```
+
+That's it. Four commands, and your instructions are compiled to every AI tool your team uses.
+
+Already have existing instructions scattered across provider configs? Skillr can reverse-import them:
+
+```bash
+npx @eooo/skillr import
+# Detected 3 skills in .claude/CLAUDE.md
+# Detected 2 skills in .cursor/rules/
+# Imported 5 skills → .skillr/skills/
+```
+
+No throwing away existing work. Your current instructions become the starting point for a unified skill library.
 
 ---
 
@@ -99,21 +131,25 @@ The variables resolve per-project at sync time. Your Laravel project fills in `L
 
 ### Prompt Linting
 
-AI instructions are only as good as their clarity. Skillr includes a built-in prompt linter with eight quality rules that catch common issues: vague instructions ("do your best"), weak constraints ("you should" vs "you must"), conflicting directives (asking for both concise and detailed output), missing output format specs, and more.
+AI instructions are only as good as their clarity. Skillr includes a built-in prompt linter with eleven quality rules that catch common issues: vague instructions ("do your best"), weak constraints ("you should" vs "you must"), conflicting directives (asking for both concise and detailed output), missing output format specs, role confusion, redundant sections, and more.
+
+```bash
+npx @eooo/skillr lint                  # lint all skills
+npx @eooo/skillr lint error-handling   # lint one skill
+npx @eooo/skillr lint --json           # machine-readable output
+```
 
 It's a small thing, but it pushes the team toward writing better prompts — which directly translates to better AI-generated code.
 
----
+### Diff Preview
 
-## Reverse-Sync: Meeting Teams Where They Are
+Before writing anything to disk, you can see exactly what would change:
 
-One of the most important features came from a practical realization: teams don't start from zero. They already have `.claude/CLAUDE.md` files, Cursor rules, and Copilot instructions scattered across their repositories.
+```bash
+npx @eooo/skillr diff
+```
 
-Skillr can scan a project directory, detect all existing provider config files, and reverse-import them into the canonical `.skillr/` format. It parses each provider's native format — H2 headings from Claude, MDC frontmatter from Cursor, flat files from Cline — and converts them into portable skills.
-
-This means adoption doesn't require throwing away existing work. Point Skillr at your repo, scan, and your existing instructions become the starting point for a unified skill library.
-
-We recently expanded this to automatically detect provider configs whenever you scan a project. No separate import step needed — it finds everything and brings it in, tagging each imported skill with its source provider for traceability.
+This shows added and modified files across all providers, so you always know what sync will do before it does it.
 
 ---
 
@@ -125,45 +161,54 @@ When your instructions are scattered across tool-specific config files that only
 
 But when those instructions are organized as a browsable, searchable library of named skills with descriptions and tags — suddenly they become discoverable. New developers can browse the skill library to understand "how we do things here." Senior developers can see gaps in coverage. The team can discuss and iterate on skills in pull requests, just like code.
 
-We ship 25 pre-built skills covering common patterns: Laravel best practices, React conventions, security rules, documentation standards, code review guidelines. Teams can import these as starting points and customize them.
+Skills live in `.skillr/skills/` as plain Markdown files — they're version-controlled, diffable, and reviewable in any code review tool. Your team's coding standards become a first-class part of the codebase.
 
 ---
 
 ## Multi-Model Testing
 
-Having skills in a structured format opened another door: you can test them. Skillr includes a live test runner that streams responses from any supported LLM provider — Anthropic, OpenAI, Gemini, or local Ollama models.
+Having skills in a structured format opened another door: you can test them. Skillr includes a test command that streams responses from Anthropic or OpenAI:
+
+```bash
+npx @eooo/skillr test error-handling --message "Write a file upload endpoint"
+npx @eooo/skillr test error-handling --model gpt-4o
+```
 
 Write a skill, then immediately test it by sending a prompt and watching the streamed response. Try it against different models. Compare how Claude interprets your instructions versus GPT. This tight feedback loop makes it practical to iterate on prompt quality in a way that copying text between config files never allowed.
 
 ---
 
-## The Architecture Choice: Why Laravel (For Now)
+## The Architecture: CLI-First, Web Dashboard Optional
 
-Skillr is built on Laravel 12 with a React + TypeScript SPA. The backend handles skill file I/O, YAML parsing, provider sync, Git operations, and LLM streaming. The frontend gives you a Monaco editor for writing skills, a visual dependency graph, and a playground for testing.
+Skillr started as a Laravel web app — a full-featured dashboard with Monaco editor, version history, visual dependency graphs, and a multi-model playground. That version still exists and works well for teams that want a GUI.
 
-For a tool that does heavy file system operations, YAML parsing, recursive template resolution, and manages seven different provider output formats, a batteries-included framework like Laravel was the right starting point. The service layer maps cleanly to the domain: a `ProviderSyncService` orchestrates seven provider drivers, a `SkillCompositionService` handles recursive includes, a `TemplateResolver` processes variables.
+But the real unlock was extracting the core engine into a standalone CLI. The CLI reads `.skillr/` directly from the filesystem. No Docker, no database, no PHP runtime. Just `npx @eooo/skillr` and you're running.
 
-The long-term plan is to migrate to NestJS/TypeScript so we can ship a self-contained desktop app via Tauri — no Docker, no PHP, no database server needed. But the Laravel version gave us the fastest path to a working product, and we're using it to prove out the feature set before investing in the platform change. Features first, architecture second.
+The CLI covers the essential workflow:
+
+| Command | What it does |
+|---|---|
+| `skillr init` | Initialize `.skillr/` in any project |
+| `skillr add <name>` | Create a new skill from a template |
+| `skillr sync` | Compile to all provider configs |
+| `skillr diff` | Preview what sync would change |
+| `skillr lint` | Run prompt quality checks |
+| `skillr import` | Reverse-import from existing configs |
+| `skillr test` | Test against an LLM |
+
+The web dashboard adds power-user features — version history with diff viewer, multi-turn playground, cross-project search, bundle export/import, agent composition — but the CLI is the primary interface. It's what you commit to your repo, what runs in CI, and what new team members use on day one.
 
 ---
 
 ## The Next Frontier: Desktop App Configs
 
-There's a layer of fragmentation that Skillr doesn't fully address yet — and it's worth being honest about.
+There's a layer of fragmentation that goes beyond project-level instruction files.
 
-Everything I've described so far deals with **project-level** instruction files. The `.claude/CLAUDE.md`, `.cursor/rules/`, `.github/copilot-instructions.md` files that live inside your repository and tell AI tools how to work with *that specific codebase*.
+Claude Desktop, ChatGPT Desktop, Claude Code, Codex CLI, Cursor, and Windsurf all maintain their own user-level config files that control MCP server connections, model preferences, permission rules, and approval modes. And predictably, every app stores these in a different location with a different schema.
 
-But there's a second layer: **desktop app configurations**. Claude Desktop, ChatGPT Desktop, Claude Code, Codex CLI, Cursor, and Windsurf all maintain their own user-level config files that control MCP server connections, model preferences, permission rules, and approval modes. And predictably, every app stores these in a different location with a different schema.
+Claude Desktop keeps its MCP servers in `~/.config/claude/claude_desktop_config.json`. Claude Code uses `~/.claude/settings.json` and per-project `.mcp.json` files. Cursor has `~/.cursor/mcp.json`. Same MCP server, same intent — three different files, three different places.
 
-Claude Desktop keeps its MCP servers in `~/.config/claude/claude_desktop_config.json`. Claude Code uses `~/.claude/settings.json` and per-project `.mcp.json` files. Cursor has `~/.cursor/mcp.json`. Codex CLI stores model and approval settings in `~/.codex/config.json`. Same MCP server, same intent — three different files, three different places.
-
-If your team has standardized on a set of MCP servers — a database connector, a documentation search tool, a deployment helper — every developer currently has to manually configure those servers in every desktop app they use. There's no way to say "here are the five MCP servers our team uses" and have that propagate everywhere.
-
-This is the natural next step for Skillr. The existing architecture already stores MCP server definitions per project and generates provider-specific configs through a trait called `GeneratesMcpConfig`. Extending this to write desktop app config files is a straightforward addition: same data source, new output targets.
-
-Beyond MCP servers, there's a "workspace profile" concept forming — a portable set of shared settings (default model, approval mode, tool permissions) that maps to each desktop app's native configuration schema. A team lead defines the profile once, and every developer's tools inherit those defaults.
-
-We're building this now. The immediate goal is desktop MCP sync — making Skillr the single source of truth for both your project instructions *and* your tool configurations. The longer-term goal is something more ambitious.
+If your team has standardized on a set of MCP servers — a database connector, a documentation search tool, a deployment helper — every developer currently has to manually configure those servers in every desktop app they use. Making Skillr the single source of truth for tool configurations, not just project instructions, is the natural next step.
 
 ---
 
@@ -173,7 +218,7 @@ The direction I'm most excited about is turning Skillr from a skill sync tool in
 
 The `.skillr/` directory becomes the canonical definition of how AI operates in your project and across your team's tools: what it knows, what it can do, how it should behave, and what it can connect to. Provider sync and desktop config sync become two output channels from the same source of truth.
 
-But that's further out. Right now, the immediate value is simpler: write your AI instructions once, configure your tools once, and everything stays synchronized.
+But that's further out. Right now, the immediate value is simpler: write your AI instructions once, and everything stays synchronized.
 
 ---
 
@@ -181,16 +226,16 @@ But that's further out. Right now, the immediate value is simpler: write your AI
 
 Skillr is open source under the MIT license.
 
-**GitHub:** [github.com/eooo-io/skillr](https://github.com/eooo-io/skillr)
-
 ```bash
-git clone https://github.com/eooo-io/skillr.git
-cd skillr
-make build && make up && make migrate
-cd ui && npm install && npm run dev
+npx @eooo/skillr init
+npx @eooo/skillr add "My First Skill"
+npx @eooo/skillr sync
 ```
 
-If your team uses more than one AI coding tool — and most do — I'd love to hear how you're handling the synchronization problem today. Open an issue, start a discussion, or contribute a new provider driver. The format is intentionally simple, and adding a new provider is a single class that reads skills and writes files.
+**npm:** [@eooo/skillr](https://www.npmjs.com/package/@eooo/skillr)
+**GitHub:** [github.com/eooo-io/skillr](https://github.com/eooo-io/skillr)
+
+If your team uses more than one AI coding tool — and most do — I'd love to hear how you're handling the synchronization problem today. Open an issue, start a discussion, or contribute a new provider driver. The format is intentionally simple, and adding a new provider is a single TypeScript file that reads skills and writes files.
 
 ---
 
