@@ -1,16 +1,17 @@
 {
-  "name": "skillr",
-  "version": "0.1.0",
+  "name": "@eooo/skillr",
+  "version": "0.1.5",
   "description": "Portable AI instruction format with cross-provider sync",
   "type": "module",
   "bin": {
-    "skillr": "./dist/cli.js"
+    "skillr": "dist/cli.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
-    "bin"
+    "bin",
+    "README.md"
   ],
   "scripts": {
     "build": "tsc",
