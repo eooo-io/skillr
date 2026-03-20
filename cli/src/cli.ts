@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 import { Command } from 'commander';
 import { initCommand } from './commands/init.js';
 import { addCommand } from './commands/add.js';
@@ -9,12 +12,15 @@ import { lintCommand } from './commands/lint.js';
 import { importCommand } from './commands/import.js';
 import { testCommand } from './commands/test.js';
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const pkg = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf-8'));
+
 const program = new Command();
 
 program
   .name('skillr')
   .description('Portable AI instruction format with cross-provider sync')
-  .version('0.1.0');
+  .version(pkg.version);
 
 program
   .command('init')
