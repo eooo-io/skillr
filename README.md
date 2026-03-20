@@ -121,7 +121,7 @@ Default login: `admin@admin.com` / `password`
 ### Sharing
 - **25 pre-built skills** across 6 categories
 - **Bundle export/import** as ZIP or JSON
-- **Marketplace** for publishing and installing community skills
+- **Skills.sh import** — discover and import skills from GitHub
 
 ## Skill Format
 

@@ -30,6 +30,6 @@ features:
     details: Preview exactly what will change in each provider's config files with side-by-side diffs before writing anything to disk.
     icon: 🔍
   - title: Share & Discover
-    details: Export skill bundles, browse the built-in marketplace, and automate workflows with webhook integrations.
+    details: Export skill bundles, import from GitHub, browse the built-in library, and automate workflows with webhook integrations.
     icon: 🌐
 ---

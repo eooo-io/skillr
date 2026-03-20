@@ -23,7 +23,6 @@
 | Jobs / Queues | BullMQ (Redis-backed) or in-process for desktop |
 | Events / Listeners | NestJS EventEmitter2 module |
 | Session Auth | Passport.js with express-session (or JWT for API-first) |
-| Cashier (Stripe) | stripe-node SDK directly |
 | SSE Streaming | NestJS `@Sse()` decorator (built-in) |
 | File I/O (Storage) | Node fs/promises + path module |
 | YAML parsing | js-yaml package |
@@ -93,23 +92,11 @@ api/                              # NestJS backend (replaces Laravel app/)
 │   │   ├── library.controller.ts
 │   │   └── library.service.ts
 │   │
-│   ├── marketplace/              # Marketplace module
-│   │   ├── marketplace.module.ts
-│   │   ├── marketplace.controller.ts  # list, show, publish, install, vote
-│   │   └── marketplace.service.ts
-│   │
 │   ├── webhooks/                 # Webhooks module
 │   │   ├── webhooks.module.ts
 │   │   ├── webhooks.controller.ts
 │   │   ├── webhook-dispatcher.service.ts
 │   │   └── inbound-webhook.controller.ts  # GitHub push events
-│   │
-│   ├── billing/                  # Billing module
-│   │   ├── billing.module.ts
-│   │   ├── billing.controller.ts     # subscribe, cancel, resume, usage, invoices
-│   │   ├── billing.service.ts
-│   │   ├── stripe-webhook.controller.ts
-│   │   └── stripe-connect.service.ts  # marketplace payouts
 │   │
 │   ├── repositories/             # Git repository module
 │   │   ├── repositories.module.ts
@@ -229,8 +216,6 @@ model User {
   authProvider           String    @default("email") @map("auth_provider")
   socialMetadata         Json?     @map("social_metadata")
   currentOrganizationId  Int?      @map("current_organization_id")
-  stripeConnectId        String?   @map("stripe_connect_id")
-  stripeConnectOnboarded Boolean   @default(false) @map("stripe_connect_onboarded")
   emailVerifiedAt        DateTime? @map("email_verified_at")
   createdAt              DateTime  @default(now()) @map("created_at")
   updatedAt              DateTime  @updatedAt @map("updated_at")
@@ -238,7 +223,6 @@ model User {
   organizations    OrganizationUser[]
   currentOrg       Organization?      @relation("CurrentOrg", fields: [currentOrganizationId], references: [id])
   usageRecords     UsageRecord[]
-  payouts          MarketplacePayout[]
 
   @@map("users")
 }
@@ -249,13 +233,6 @@ model Organization {
   name               String
   slug               String    @unique
   description        String?
-  plan               String    @default("free") // free, pro, teams
-  trialEndsAt        DateTime? @map("trial_ends_at")
-  subscriptionEndsAt DateTime? @map("subscription_ends_at")
-  planLimits         Json?     @map("plan_limits")
-  stripeId           String?   @map("stripe_id")
-  pmType             String?   @map("pm_type")
-  pmLastFour         String?   @map("pm_last_four")
   createdAt          DateTime  @default(now()) @map("created_at")
   updatedAt          DateTime  @updatedAt @map("updated_at")
 
@@ -465,30 +442,6 @@ model LibrarySkill {
   @@map("library_skills")
 }
 
-model MarketplaceSkill {
-  id          Int      @id @default(autoincrement())
-  uuid        String   @unique @default(uuid())
-  name        String
-  slug        String   @unique
-  description String?
-  category    String?
-  tags        Json     @default("[]")
-  frontmatter Json     @default("{}")
-  body        String   @default("")
-  author      String?
-  source      String?
-  downloads   Int      @default(0)
-  upvotes     Int      @default(0)
-  downvotes   Int      @default(0)
-  version     String   @default("1.0.0")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  payouts MarketplacePayout[]
-
-  @@map("marketplace_skills")
-}
-
 model AppSetting {
   id    Int    @id @default(autoincrement())
   key   String @unique
@@ -555,33 +508,6 @@ model ProjectRepository {
 
   @@unique([projectId, provider])
   @@map("project_repositories")
-}
-
-model Plan {
-  id                      Int     @id @default(autoincrement())
-  slug                    String  @unique
-  name                    String
-  description             String?
-  priceMonthly            Int     @default(0) @map("price_monthly")
-  priceYearly             Int     @default(0) @map("price_yearly")
-  stripeMonthlyPriceId    String? @map("stripe_monthly_price_id")
-  stripeYearlyPriceId     String? @map("stripe_yearly_price_id")
-  includedTokensMonthly   Int     @default(0) @map("included_tokens_monthly")
-  overagePricePer1kTokens Int     @default(0) @map("overage_price_per_1k_tokens")
-  maxProjects             Int     @default(3) @map("max_projects")
-  maxSkillsPerProject     Int     @default(25) @map("max_skills_per_project")
-  maxProviders            Int     @default(2) @map("max_providers")
-  maxMembers              Int     @default(1) @map("max_members")
-  marketplacePublish      Boolean @default(false) @map("marketplace_publish")
-  aiGeneration            Boolean @default(false) @map("ai_generation")
-  webhookAccess           Boolean @default(false) @map("webhook_access")
-  bundleExport            Boolean @default(false) @map("bundle_export")
-  repositoryAccess        Boolean @default(false) @map("repository_access")
-  prioritySupport         Boolean @default(false) @map("priority_support")
-  isActive                Boolean @default(true) @map("is_active")
-  sortOrder               Int     @default(0) @map("sort_order")
-
-  @@map("plans")
 }
 
 model OpenClawConfig {
@@ -651,23 +577,6 @@ model UsageRecord {
   @@map("usage_records")
 }
 
-model MarketplacePayout {
-  id                 Int       @id @default(autoincrement())
-  userId             Int       @map("user_id")
-  marketplaceSkillId Int       @map("marketplace_skill_id")
-  stripeTransferId   String?   @map("stripe_transfer_id")
-  amount             Int
-  currency           String    @default("usd")
-  status             String    @default("pending")
-  paidAt             DateTime? @map("paid_at")
-  createdAt          DateTime  @default(now()) @map("created_at")
-  updatedAt          DateTime  @updatedAt @map("updated_at")
-
-  user  User             @relation(fields: [userId], references: [id])
-  skill MarketplaceSkill @relation(fields: [marketplaceSkillId], references: [id])
-
-  @@map("marketplace_payouts")
-}
 ```
 
 ## Migration Phases
@@ -748,12 +657,11 @@ model MarketplacePayout {
 
 ### Phase 3: Ecosystem (Week 5-6)
 
-**Goal:** Library, marketplace, agents, bundles, search, webhooks.
+**Goal:** Library, agents, bundles, search, webhooks.
 
 18. **Agents module** — compose, toggle, assign skills
 19. **Library module** — browse, import
-20. **Marketplace module** — publish, install, vote
-21. **Search module** — cross-project full-text search
+20. **Search module** — cross-project full-text search
 22. **Bundles module** — ZIP/JSON export and import
 23. **Webhooks module** — CRUD, delivery, HMAC signing, event dispatch
 24. **Skills.sh module** — GitHub discovery and import
@@ -763,10 +671,9 @@ model MarketplacePayout {
 
 ### Phase 4: Platform (Week 7-8)
 
-**Goal:** Billing, repositories, advanced features, desktop app.
+**Goal:** Repositories, advanced features, desktop app.
 
-26. **Billing module** — Stripe subscriptions, usage tracking, Connect
-27. **Repositories module** — GitHub/GitLab connect, pull, push
+26. **Repositories module** — GitHub/GitLab connect, pull, push
 28. **MCP servers** — CRUD
 29. **A2A agents** — CRUD
 30. **OpenClaw config** — CRUD
@@ -818,9 +725,6 @@ simple-git                       # replaces shell git calls
 @anthropic-ai/sdk                # replaces mozex/anthropic-laravel
 openai                           # OpenAI SDK
 @google/generative-ai            # Gemini SDK
-
-# Billing
-stripe                           # replaces Laravel Cashier
 
 # Queue (hosted mode)
 @nestjs/bull bullmq              # replaces Laravel queues
@@ -897,5 +801,4 @@ Filament is PHP-only and cannot migrate. Options:
 | Data migration | Build a one-time migration script (MariaDB → SQLite/PostgreSQL via Prisma) |
 | SSE streaming differences | NestJS has first-class `@Sse()` support — test with existing React SSE consumers |
 | OAuth complexity | Use well-tested Passport strategies; test in parallel before cutover |
-| Stripe integration | stripe-node is the official SDK — actually simpler than Cashier |
 | Scope creep | Phase-based approach; each phase produces a working system |

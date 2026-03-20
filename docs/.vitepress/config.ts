@@ -76,7 +76,6 @@ export default defineConfig({
           text: 'Sharing',
           items: [
             { text: 'Library', link: '/guide/library' },
-            { text: 'Marketplace', link: '/guide/marketplace' },
             { text: 'Skills.sh Import', link: '/guide/skills-sh' },
             { text: 'Bundle Export/Import', link: '/guide/bundles' },
           ],
@@ -108,7 +107,6 @@ export default defineConfig({
           text: 'Account',
           items: [
             { text: 'Authentication', link: '/guide/authentication' },
-            { text: 'Billing & Subscriptions', link: '/guide/billing' },
           ],
         },
       ],

@@ -42,7 +42,6 @@ skillr/
 │   │   ├── BundleController.php
 │   │   ├── InboundWebhookController.php
 │   │   ├── LibraryController.php
-│   │   ├── MarketplaceController.php
 │   │   ├── ModelController.php
 │   │   ├── ProjectController.php
 │   │   ├── SearchController.php
@@ -95,8 +94,8 @@ skillr/
 │   └── web.php             # Filament auto-registers here
 ├── ui/                     # React + Vite + TypeScript SPA
 │   └── src/
-│       ├── pages/          # Projects, ProjectDetail, SkillEditor, Playground, Library, Marketplace, Search, Settings
-│       ├── components/     # layout/, skills/, library/, agents/, marketplace/
+│       ├── pages/          # Projects, ProjectDetail, SkillEditor, Playground, Library, Search, Settings
+│       ├── components/     # layout/, skills/, library/, agents/
 │       ├── store/          # Zustand (useAppStore.ts)
 │       ├── api/            # Axios client (client.ts)
 │       └── types/          # TypeScript types (index.ts)
@@ -119,7 +118,6 @@ skillr/
 | Playground (multi-turn chat) | React SPA |
 | Version history + diff viewer | React SPA |
 | Agent configuration + compose preview | React SPA |
-| Marketplace (publish/install/vote) | React SPA |
 | Cross-project search | React SPA |
 | Bundle export/import | React SPA |
 | Webhook configuration | React SPA |
@@ -127,7 +125,7 @@ skillr/
 
 ## Database Schema
 
-Tables: `projects`, `project_providers`, `skills`, `skill_versions`, `tags`, `skill_tag` (pivot), `library_skills`, `app_settings`, `agents`, `project_agent` (pivot), `agent_skill` (pivot), `marketplace_skills`, `webhooks`, `webhook_deliveries`, `skill_variables`.
+Tables: `projects`, `project_providers`, `skills`, `skill_versions`, `tags`, `skill_tag` (pivot), `library_skills`, `app_settings`, `agents`, `project_agent` (pivot), `agent_skill` (pivot), `webhooks`, `webhook_deliveries`, `skill_variables`.
 
 - `skills.tools` is a JSON column
 - `skills.includes` is a JSON column (skill slug references)
@@ -181,7 +179,6 @@ Required frontmatter fields: `id`, `name`. All others are optional.
 - **Session-based auth** using Laravel's `auth:web` guard — cookies, not tokens
 - **Multi-auth:** email/password, GitHub OAuth, Apple Sign In
 - **Multi-tenant:** Organizations with role-based access (owner, admin, editor, viewer, member)
-- **Plan-based gates:** free, pro, teams — enforced via `CheckPlanFeature`, `CheckPlanLimit`, `CheckUsageBudget` middleware
 - **Filament admin** protected with Filament's `Authenticate` middleware
 - **API routes** protected with `auth:web` middleware (session cookies shared with SPA)
 - **Organization resolution:** `ResolveOrganization` middleware resolves via `X-Organization-Id` header or user's `current_organization_id`
@@ -205,9 +202,7 @@ POST /auth/apple/callback  # Apple Sign In callback (form_post)
 
 ```
 GET  /api/health                        # Health check
-POST /api/stripe/webhook                # Stripe webhooks
 POST /api/webhooks/github/{projectId}   # Inbound GitHub push
-GET  /api/billing/plans                 # Plan listing
 ```
 
 ## API Endpoints
@@ -278,13 +273,6 @@ GET            /api/projects/{id}/agents/compose
 POST           /api/projects/{id}/export
 POST           /api/projects/{id}/import-bundle
 
-# Marketplace
-GET            /api/marketplace
-GET            /api/marketplace/{id}
-POST           /api/marketplace/publish
-POST           /api/marketplace/{id}/install
-POST           /api/marketplace/{id}/vote
-
 # Webhooks
 GET            /api/projects/{id}/webhooks
 POST           /api/projects/{id}/webhooks
@@ -326,21 +314,6 @@ POST           /api/projects/{id}/import
 GET            /api/models
 GET|PUT        /api/settings
 
-# Billing & Subscriptions
-GET            /api/billing/status
-POST           /api/billing/subscribe
-POST           /api/billing/change-plan
-POST           /api/billing/cancel
-POST           /api/billing/resume
-POST           /api/billing/setup-intent
-PUT            /api/billing/payment-method
-GET            /api/billing/invoices
-GET            /api/billing/usage
-
-# Stripe Connect (Marketplace Sellers)
-POST           /api/billing/connect
-GET            /api/billing/connect/status
-GET            /api/billing/earnings
 ```
 
 ## Development Commands

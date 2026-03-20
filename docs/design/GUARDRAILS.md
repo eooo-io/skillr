@@ -10,14 +10,14 @@ Skills are prompts that get injected into AI coding assistants. Malicious skills
 - **Prompt injection** — Override the host AI's safety instructions ("ignore all previous rules")
 - **Exfiltration instructions** — Tell the AI to leak secrets, env vars, or source code to external URLs
 - **Vulnerability insertion** — Subtly instruct the AI to write insecure code (weak crypto, SQLi, backdoors)
-- **Supply chain attacks** — Marketplace skills that look helpful but contain hidden instructions
+- **Supply chain via imports** — Library or bundled skills that look helpful but contain hidden instructions
 - **Malicious tool config** — MCP servers or A2A agents pointing to attacker-controlled endpoints
 
 ## Design Principle
 
 **Warn loudly, block rarely, log everything.**
 
-Legitimate users get full freedom with clear visibility. Bad actors get caught at the distribution layer (marketplace) where review is justified. Multiple lightweight layers rather than one heavy gate — each layer catches a different class of abuse while staying out of the way for legitimate use.
+Legitimate users get full freedom with clear visibility. Multiple lightweight layers rather than one heavy gate — each layer catches a different class of abuse while staying out of the way for legitimate use.
 
 ## Layer 1 — Structural Constraints
 
@@ -56,12 +56,12 @@ Fast, cheap, transparent. Runs on every save.
 
 ## Layer 3 — LLM-Based Content Review
 
-Nuanced analysis for marketplace publishing. Catches obfuscated attacks that static patterns miss.
+Nuanced analysis for imported skills. Catches obfuscated attacks that static patterns miss.
 
 ### When it runs
 
-- **On marketplace publish** (required, blocking above a risk threshold)
 - **On-demand scan** triggered by user ("Scan this skill for risks")
+- **On library/bundle import** (optional, configurable)
 - **NOT on every save** — too expensive and too slow for the editing loop
 
 ### How it works
@@ -72,7 +72,6 @@ Nuanced analysis for marketplace publishing. Catches obfuscated attacks that sta
    - Overall risk score (0-100)
    - Per-category findings with reasoning
    - Specific passages flagged with explanations
-4. Scores above threshold require human review before marketplace listing goes live
 
 ### Classifier prompt design
 
@@ -80,37 +79,9 @@ Nuanced analysis for marketplace publishing. Catches obfuscated attacks that sta
 - Tested against a corpus of known-malicious and known-benign skills to calibrate thresholds
 - The classifier model should be different from the model being tested (defense in depth)
 
-**Implementation:** New `SkillGuardrailService` with `analyze(Skill $skill): GuardrailReport`. Called from `MarketplaceController::publish` and exposed via `POST /api/skills/{id}/scan`.
+**Implementation:** New `SkillGuardrailService` with `analyze(Skill $skill): GuardrailReport`. Exposed via `POST /api/skills/{id}/scan`.
 
-## Layer 4 — Marketplace Trust & Transparency
-
-Community-driven defense layer for the distribution surface.
-
-### Transparency report
-
-Every published marketplace skill displays:
-- What static patterns were detected (if any, with dismissal reasons)
-- What tools, URLs, and external services are referenced
-- What permissions/capabilities it implies (file access, network, shell)
-- Diff view on updates — users see exactly what changed before auto-updating
-
-### Trust signals
-
-- Verified publisher badges (linked to Stripe Connect identity)
-- Install count and community rating
-- Community flagging with review queue
-- Publisher history: how many skills published, average ratings, any prior removals
-
-### Marketplace moderation
-
-- Skills above LLM risk threshold are held for manual review
-- Flagged skills are temporarily unlisted pending review
-- Repeat offenders get publishing privileges revoked
-- All moderation actions logged in audit trail
-
-**Implementation:** Add `risk_score`, `review_status`, `transparency_report` columns to `marketplace_skills`. New `MarketplaceModerationService` for review queue management.
-
-## Layer 5 — Runtime Guardrails
+## Layer 4 — Runtime Guardrails
 
 Defense in depth for the live test runner and playground.
 
@@ -127,7 +98,6 @@ These are explicit anti-patterns to avoid:
 
 - **Don't blacklist keywords.** Blocking "hack", "exploit", "vulnerability" kills every security-focused skill. A pentesting skill is legitimate.
 - **Don't restrict prompt content structurally.** Skills need to say anything — that's the entire value proposition. Guardrails live around the skill, not inside it.
-- **Don't require approval for local/private skills.** Only gate marketplace publishing. Your own skills on your own machine are your business.
 - **Don't break composability.** Skills that `include:` other skills shouldn't lose their ability to compose just because one layer flagged something.
 - **Don't create a false sense of security.** No guardrail system is perfect. Transparency and auditability matter more than prevention theater.
 
@@ -136,7 +106,7 @@ These are explicit anti-patterns to avoid:
 | Priority | Layer | Effort | Impact |
 |---|---|---|---|
 | 1 | Static pattern scanner (extend `PromptLinter`) | Low | Catches obvious attacks immediately |
-| 2 | Marketplace publish gate (LLM review) | Medium | Secures the highest-risk vector |
+| 2 | LLM review on import | Medium | Catches obfuscated attacks in imported skills |
 | 3 | Transparency UI (skill report card) | Medium | Informed users are the best guardrail |
 | 4 | Audit log | Medium | Essential for incident response |
 | 5 | MCP/A2A endpoint validation | Low | Prevents malicious tool configs |
@@ -148,7 +118,7 @@ These are explicit anti-patterns to avoid:
 skill_guardrail_reports
 ├── id
 ├── skill_id (FK)
-├── triggered_by (enum: save, publish, manual_scan)
+├── triggered_by (enum: save, import, manual_scan)
 ├── static_warnings (JSON: [{pattern, category, severity, passage, dismissed}])
 ├── llm_risk_score (int 0-100, nullable)
 ├── llm_findings (JSON, nullable)
@@ -158,16 +128,11 @@ skill_guardrail_reports
 ├── created_at
 └── updated_at
 
-marketplace_skills (additions)
-├── risk_score (int, nullable)
-├── review_status (enum: pending, approved, rejected, flagged)
-└── transparency_report (JSON)
-
 audit_log
 ├── id
 ├── organization_id (FK)
 ├── user_id (FK)
-├── action (string: skill.created, skill.published, guardrail.dismissed, etc.)
+├── action (string: skill.created, skill.imported, guardrail.dismissed, etc.)
 ├── auditable_type (morph)
 ├── auditable_id (morph)
 ├── metadata (JSON)
