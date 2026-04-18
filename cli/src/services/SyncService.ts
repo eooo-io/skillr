@@ -67,6 +67,36 @@ export async function resolveSkills(
 }
 
 /**
+ * Resolve skills and generate provider file outputs without any disk I/O.
+ * Shared pipeline used by sync (writes) and preview (diffs).
+ */
+async function generateOutputs(
+  projectPath: string,
+  variables: Record<string, string>,
+  providerFilter?: string,
+): Promise<{
+  outputs: SyncResult[];
+  manifest: Manifest;
+  skills: ResolvedSkill[];
+}> {
+  const { skills, manifest } = await resolveSkills(projectPath, variables);
+  const providers = providerFilter ? [providerFilter] : manifest.providers;
+  const outputs = providers.map((provider) => ({
+    provider,
+    files: getDriver(provider).generate(skills, projectPath),
+  }));
+  return { outputs, manifest, skills };
+}
+
+export interface PreviewEntry {
+  path: string;
+  provider: string;
+  current: string | null;
+  proposed: string;
+  status: 'added' | 'modified' | 'unchanged';
+}
+
+/**
  * Sync skills to all enabled providers.
  */
 export async function sync(
@@ -74,29 +104,20 @@ export async function sync(
   variables: Record<string, string> = {},
   providerFilter?: string,
 ): Promise<SyncResult[]> {
-  const { skills, manifest } = await resolveSkills(projectPath, variables);
-  const providers = providerFilter ? [providerFilter] : manifest.providers;
-  const results: SyncResult[] = [];
+  const { outputs, manifest, skills } = await generateOutputs(projectPath, variables, providerFilter);
 
-  for (const providerSlug of providers) {
-    const driver = getDriver(providerSlug);
-    const files = driver.generate(skills, projectPath);
-
-    // Write files
+  for (const { files } of outputs) {
     for (const file of files) {
       await fs.mkdir(path.dirname(file.path), { recursive: true });
       await fs.writeFile(file.path, file.content);
     }
-
-    results.push({ provider: providerSlug, files });
   }
 
-  // Update synced_at
   manifest.synced_at = new Date().toISOString();
   manifest.skills = skills.map((s) => s.slug);
   await writeManifest(projectPath, manifest);
 
-  return results;
+  return outputs;
 }
 
 /**
@@ -106,27 +127,11 @@ export async function preview(
   projectPath: string,
   variables: Record<string, string> = {},
   providerFilter?: string,
-): Promise<Array<{
-  path: string;
-  provider: string;
-  current: string | null;
-  proposed: string;
-  status: 'added' | 'modified' | 'unchanged';
-}>> {
-  const { skills, manifest } = await resolveSkills(projectPath, variables);
-  const providers = providerFilter ? [providerFilter] : manifest.providers;
-  const results: Array<{
-    path: string;
-    provider: string;
-    current: string | null;
-    proposed: string;
-    status: 'added' | 'modified' | 'unchanged';
-  }> = [];
+): Promise<PreviewEntry[]> {
+  const { outputs } = await generateOutputs(projectPath, variables, providerFilter);
+  const results: PreviewEntry[] = [];
 
-  for (const providerSlug of providers) {
-    const driver = getDriver(providerSlug);
-    const files = driver.generate(skills, projectPath);
-
+  for (const { provider, files } of outputs) {
     for (const file of files) {
       let current: string | null = null;
       try {
@@ -135,7 +140,7 @@ export async function preview(
         // File doesn't exist
       }
 
-      let status: 'added' | 'modified' | 'unchanged';
+      let status: PreviewEntry['status'];
       if (current === null) {
         status = 'added';
       } else if (current === file.content) {
@@ -144,13 +149,7 @@ export async function preview(
         status = 'modified';
       }
 
-      results.push({
-        path: file.path,
-        provider: providerSlug,
-        current,
-        proposed: file.content,
-        status,
-      });
+      results.push({ path: file.path, provider, current, proposed: file.content, status });
     }
   }
 
