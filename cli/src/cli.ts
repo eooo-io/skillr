@@ -45,6 +45,7 @@ program
   .option('-p, --provider <name>', 'Sync to a single provider')
   .option('--dry-run', 'Preview without writing')
   .option('--force', 'Ignore skill conditions and sync all skills')
+  .option('--watch', 'Watch .skillr/skills/ and re-sync on changes')
   .action(syncCommand);
 
 program
