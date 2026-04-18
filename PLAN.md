@@ -6,32 +6,22 @@
 
 ## Current Direction: CLI-First Open Source Tool
 
-Skillr is a **portable AI instruction format with cross-provider sync**. The core value is: define skills once in `.skillr/`, compile to native config files for Claude, Cursor, Copilot, Windsurf, Cline, and OpenAI.
+Skillr is a **portable AI instruction format with cross-provider sync**. Define skills once in `.skillr/`, compile to native config files for 10 providers: Claude, Cursor, Copilot, Windsurf, Cline, OpenAI, Zed, Aider, Continue, and JetBrains AI (Junie).
 
-The strategic priority is shipping a standalone CLI (`npx @eooo/skillr`) that works without Docker, databases, or a web browser.
+The CLI is the primary artifact, published as `@eooo/skillr`. No Docker, no database, no web browser required. Install with `npx @eooo/skillr` and go.
 
 ```
-.skillr/skills/
-    ├── code-review.md
-    ├── testing-strategy.md
-    └── api-standards.md
-          │
-          ▼
-   ┌──────────────┐
-   │  Composition  │  ← resolve includes, substitute templates
-   │    Engine     │
-   └──────┬───────┘
-          │
-          ▼
-   ┌──────────────┐
-   │   Provider    │  ← pure transform: skills → native format
-   │   Drivers     │
-   └──────┬───────┘
-          │
-    ┌─────┼─────┬─────┬─────┬─────┐
-    ▼     ▼     ▼     ▼     ▼     ▼
- CLAUDE  .cursor  copilot  .windsurf  .clinerules  .openai
-  .md    /rules   .md      /rules                  .md
+.skillr/skills/*.md
+      │
+      ▼  parse → compose → templates → conditions
+      │
+      ▼
+  Provider drivers (built-in or plugin)
+      │
+      ▼
+  CLAUDE.md · .cursor/rules/ · .github/copilot-instructions.md
+  · .windsurf/rules/ · .clinerules · .openai/ · .rules · CONVENTIONS.md
+  · .continue/rules/ · .junie/guidelines.md · (+ custom plugins)
 ```
 
 ---
@@ -40,96 +30,70 @@ The strategic priority is shipping a standalone CLI (`npx @eooo/skillr`) that wo
 
 Pinned the canonical format as a stable, versioned specification.
 
-**Deliverables:** Spec v1 defined in types, frontmatter schema, provider output contracts, composition/template resolution specs all implemented and tested.
-
 ---
 
 ## Phase 2: Standalone CLI Tool — COMPLETE
 
-Shipped `npx @eooo/skillr` — a standalone Node.js CLI (TypeScript + Commander.js).
-
-All core services ported and tested (109 tests passing):
-- SkillFileParser, SkillCompositionService, TemplateResolver, PromptLinter
-- 6 provider drivers (Claude, Cursor, Copilot, Windsurf, Cline, OpenAI)
-- 7 commands: `init`, `add`, `sync`, `diff`, `lint`, `import`, `test`
-
-Published to npm as `@eooo/skillr` (v0.1.8).
+Shipped `npx @eooo/skillr` — a standalone Node.js CLI (TypeScript + Commander).
 
 ---
 
 ## Phase 3: CI/CD & Quality — COMPLETE (v0.2.0)
 
-Hardened the CLI for reliable releases. CI now gates every push/PR on CLI tests + build, and releases auto-publish to npm on tag push.
+CI gates every push/PR on CLI tests + build. Releases auto-publish to npm on tag push.
 
-- #92 — CLI tests job added to CI workflow
-- #93 — `add`/`import` validate frontmatter before writing
-- #94 — Shared `generateOutputs()` extracted from SyncService
-- #105 — `npm-publish.yml` workflow publishes on `v*` tag, `.npmignore` added, sourcemaps disabled (tarball 29.4 kB → 17.3 kB)
+- #92 — CLI tests job in CI
+- #93 — Frontmatter validation in `add`/`import`
+- #94 — `generateOutputs()` extracted from SyncService
+- #105 — `npm-publish.yml` workflow + `.npmignore` (tarball 29.4 → 17.3 kB)
 
 ---
 
 ## Phase 4: Feature Completeness — COMPLETE (v0.3.0)
 
-Filled parsed-but-unused features and CLI command gaps.
-
-- #95 — Conditional skill rendering via ConditionEvaluator + `--force` flag
-- #96 — Supplementary files flow through to every provider (inline sections or companion files)
-- #97 — Per-provider try/catch so partial sync failures don't block others
-- #98 — `skillr remove` command
-- #99 — `skillr list` command (with `--json`)
+- #95 — Conditional skill rendering (ConditionEvaluator + `--force`)
+- #96 — Supplementary files flow through every provider
+- #97 — Partial sync failures tolerated (per-provider try/catch)
+- #98 — `skillr remove`
+- #99 — `skillr list`
 
 ---
 
 ## Phase 5: New Providers & DX — COMPLETE (v0.4.0)
 
 - #100 — Zed, Aider, Continue, Junie drivers (10 providers total)
-- #101 — `skillr sync --watch` with native fs.watch + debounce
+- #101 — `skillr sync --watch` (native fs.watch + debounce)
 - #102 — `detectProvider()` priority chain for `skillr test`
 
 ---
 
-## Phase 6: Pluggable Provider Architecture — [Milestone 11](https://github.com/eooo-io/skillr/milestone/11)
+## Phase 6: Pluggable Provider Architecture — COMPLETE
 
-**Goal:** Make it trivial for the community to add new AI tool support.
-
-| # | Issue | Status |
-|---|---|---|
-| [#80](https://github.com/eooo-io/skillr/issues/80) | Define ProviderPlugin interface and discovery mechanism | |
-| [#81](https://github.com/eooo-io/skillr/issues/81) | Extract built-in providers as reference implementations | |
-| [#82](https://github.com/eooo-io/skillr/issues/82) | `skillr provider:add <name>` command | |
-| [#83](https://github.com/eooo-io/skillr/issues/83) | Document "How to write a provider" guide | |
+- #80 — `ProviderPlugin` interface + `registerDriver()` + `.skillr/plugins/*.js` discovery
+- #81 — Built-in drivers now use the same registration path
+- #82 — `skillr provider:add <name>` scaffolds a plugin template
+- #83 — `docs/guide/custom-providers.md` walks the full plugin authoring flow
 
 ---
 
-## Phase 7: Stable Release — [v1.0.0](https://github.com/eooo-io/skillr/milestone/17)
+## Phase 7: Stable Release — COMPLETE (v1.0.0)
 
-**Goal:** All core features complete, docs current, ready for broader adoption.
-
-| # | Issue | Status |
-|---|---|---|
-| [#103](https://github.com/eooo-io/skillr/issues/103) | Clean up stale documentation (STATUS.md, NOTES.md, PLAN.md) | |
-| [#104](https://github.com/eooo-io/skillr/issues/104) | Triage FEATURE_IDEAS.md into GitHub issues | |
-
----
-
-## Open Documentation Issues
-
-| # | Issue | Milestone |
-|---|---|---|
-| [#84](https://github.com/eooo-io/skillr/issues/84) | Rewrite README for CLI-first positioning | [Milestone 12](https://github.com/eooo-io/skillr/milestone/12) |
-| [#85](https://github.com/eooo-io/skillr/issues/85) | Add CLI quickstart guide to docs | [Milestone 12](https://github.com/eooo-io/skillr/milestone/12) |
-| [#86](https://github.com/eooo-io/skillr/issues/86) | Update docs homepage and navigation | [Milestone 12](https://github.com/eooo-io/skillr/milestone/12) |
-| [#87](https://github.com/eooo-io/skillr/issues/87) | Add "How it works" architecture diagram | [Milestone 12](https://github.com/eooo-io/skillr/milestone/12) |
-| [#90](https://github.com/eooo-io/skillr/issues/90) | Update CLAUDE.md with CLI architecture | [Milestone 13](https://github.com/eooo-io/skillr/milestone/13) |
+- #84 — README rewritten CLI-first (shipped earlier in v0.1.x)
+- #85 — `docs/guide/cli-quickstart.md`
+- #86 — VitePress homepage and sidebar restructured for CLI-first navigation
+- #87 — `docs/guide/how-it-works.md` with Mermaid pipeline diagram
+- #90 — Repo-root `CLAUDE.md` orients agent tools on the CLI architecture
+- #103 — Stale docs (STATUS.md, NOTES.md, NESTJS_MIGRATION_PLAN.md) archived under `docs/archive/`
+- #104 — FEATURE_IDEAS.md triaged; relevant ideas filed as #106–#110, rest dropped
 
 ---
 
-## Future (post v1.0.0 adoption)
+## Future (post v1.0.0)
 
-These are deferred until CLI adoption validates demand:
+Tracked in GitHub Issues:
 
-- Desktop app (Tauri + embedded backend)
-- Team collaboration features
-- Plugin registry / marketplace
-- CI/CD integrations (GitHub Actions, pre-commit hooks)
-- Skill versioning and history
+- [#106](https://github.com/eooo-io/skillr/issues/106) `skillr graph` — dependency tree
+- [#107](https://github.com/eooo-io/skillr/issues/107) `skillr cost` — prompt cost estimator
+- [#108](https://github.com/eooo-io/skillr/issues/108) Secret-scanning lint rule
+- [#109](https://github.com/eooo-io/skillr/issues/109) VS Code extension
+- [#110](https://github.com/eooo-io/skillr/issues/110) GitHub Action for CI sync
