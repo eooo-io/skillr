@@ -77,66 +77,116 @@ describe('resolveSkills', () => {
 
 describe('sync', () => {
   it('writes provider files and updates synced_at', async () => {
-    const results = await sync(tmpDir);
+    const { results } = await sync(tmpDir);
 
-    // Should sync to both claude and cursor
     expect(results).toHaveLength(2);
     expect(results.map((r) => r.provider)).toEqual(expect.arrayContaining(['claude', 'cursor']));
 
-    // Claude file should exist
     const claudeFile = await fs.readFile(path.join(tmpDir, '.claude', 'CLAUDE.md'), 'utf-8');
     expect(claudeFile).toContain('Greeting Skill');
 
-    // Cursor file should exist
     const cursorFile = await fs.readFile(
       path.join(tmpDir, '.cursor', 'rules', 'greet.mdc'),
       'utf-8',
     );
     expect(cursorFile).toContain('Always greet the user warmly.');
 
-    // Manifest should have synced_at updated
     const manifest = await readManifest(tmpDir);
     expect(manifest.synced_at).not.toBeNull();
     expect(manifest.skills).toContain('greet');
   });
 
   it('filters to a single provider', async () => {
-    const results = await sync(tmpDir, {}, 'claude');
+    const { results } = await sync(tmpDir, {}, 'claude');
     expect(results).toHaveLength(1);
     expect(results[0].provider).toBe('claude');
+  });
+
+  it('skips skills whose conditions are not met', async () => {
+    const skillContent = renderFile(
+      {
+        id: 'react',
+        name: 'React Skill',
+        conditions: { file_patterns: ['**/*.tsx'] },
+      },
+      'React-specific advice.',
+    );
+    await fs.writeFile(path.join(tmpDir, '.skillr', 'skills', 'react.md'), skillContent);
+
+    const { results, skipped } = await sync(tmpDir);
+    expect(skipped.map((s) => s.slug)).toContain('react');
+
+    const claudeFile = await fs.readFile(path.join(tmpDir, '.claude', 'CLAUDE.md'), 'utf-8');
+    expect(claudeFile).not.toContain('React Skill');
+    expect(results.some((r) => r.error)).toBe(false);
+  });
+
+  it('includes conditional skills when --force', async () => {
+    const skillContent = renderFile(
+      {
+        id: 'react',
+        name: 'React Skill',
+        conditions: { file_patterns: ['**/*.tsx'] },
+      },
+      'React-specific advice.',
+    );
+    await fs.writeFile(path.join(tmpDir, '.skillr', 'skills', 'react.md'), skillContent);
+
+    const { skipped } = await sync(tmpDir, {}, undefined, { force: true });
+    expect(skipped).toHaveLength(0);
+
+    const claudeFile = await fs.readFile(path.join(tmpDir, '.claude', 'CLAUDE.md'), 'utf-8');
+    expect(claudeFile).toContain('React Skill');
   });
 });
 
 describe('preview', () => {
   it('shows files as added when they do not exist', async () => {
-    const results = await preview(tmpDir);
+    const { results } = await preview(tmpDir);
     expect(results.length).toBeGreaterThan(0);
     expect(results.every((r) => r.status === 'added')).toBe(true);
   });
 
   it('shows files as unchanged after sync', async () => {
     await sync(tmpDir);
-    const results = await preview(tmpDir);
+    const { results } = await preview(tmpDir);
     expect(results.every((r) => r.status === 'unchanged')).toBe(true);
   });
 
   it('shows files as modified after content change', async () => {
     await sync(tmpDir);
 
-    // Modify the skill
     const newContent = renderFile(
       { id: 'greet', name: 'Greeting Skill', tags: ['test'] },
       'Greet the user with a joke.',
     );
     await fs.writeFile(path.join(tmpDir, '.skillr', 'skills', 'greet.md'), newContent);
 
-    const results = await preview(tmpDir);
+    const { results } = await preview(tmpDir);
     const modified = results.filter((r) => r.status === 'modified');
     expect(modified.length).toBeGreaterThan(0);
   });
 
   it('filters by provider', async () => {
-    const results = await preview(tmpDir, {}, 'cursor');
+    const { results } = await preview(tmpDir, {}, 'cursor');
     expect(results.every((r) => r.provider === 'cursor')).toBe(true);
+  });
+
+  it('reports skipped skills with reasons', async () => {
+    const skillContent = renderFile(
+      {
+        id: 'api',
+        name: 'API Skill',
+        conditions: { path_prefixes: ['src/api'] },
+      },
+      'API-specific advice.',
+    );
+    await fs.writeFile(path.join(tmpDir, '.skillr', 'skills', 'api.md'), skillContent);
+
+    const { skipped } = await preview(tmpDir);
+    expect(skipped.find((s) => s.slug === 'api')).toMatchObject({
+      slug: 'api',
+      reason: expect.stringContaining('path_prefixes'),
+    });
   });
 });

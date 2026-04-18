@@ -3,7 +3,7 @@ import { preview } from '../services/SyncService.js';
 import * as ui from '../ui.js';
 import { colors } from '../ui.js';
 
-export async function diffCommand(options: { provider?: string }): Promise<void> {
+export async function diffCommand(options: { provider?: string; force?: boolean }): Promise<void> {
   const projectPath = process.cwd();
 
   if (!(await hasSkillrDir(projectPath))) {
@@ -14,7 +14,23 @@ export async function diffCommand(options: { provider?: string }): Promise<void>
   ui.thinking('Computing diff...');
 
   try {
-    const results = await preview(projectPath, {}, options.provider);
+    const { results, skipped, errors } = await preview(projectPath, {}, options.provider, {
+      force: options.force,
+    });
+
+    if (skipped.length > 0) {
+      ui.blank();
+      for (const s of skipped) {
+        ui.info(`Skipping ${s.slug}: ${s.reason}`);
+      }
+    }
+
+    if (errors.length > 0) {
+      ui.blank();
+      for (const e of errors) {
+        ui.error(`${e.provider}: ${e.error}`);
+      }
+    }
 
     const changed = results.filter((r) => r.status !== 'unchanged');
     if (changed.length === 0) {

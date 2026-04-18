@@ -3,12 +3,24 @@ import path from 'node:path';
 import { scanProject, readManifest, writeManifest } from './ManifestService.js';
 import { resolve as resolveIncludes } from './SkillCompositionService.js';
 import { resolve as resolveTemplates } from './TemplateResolver.js';
+import { evaluateConditions } from './ConditionEvaluator.js';
 import { getDriver } from '../drivers/index.js';
 import type { ParsedSkill, ResolvedSkill, FileOutput, Manifest } from '../types.js';
 
 export interface SyncResult {
   provider: string;
   files: FileOutput[];
+  error?: string;
+}
+
+export interface SkippedSkill {
+  slug: string;
+  reason: string;
+}
+
+export interface SyncRunResult {
+  results: SyncResult[];
+  skipped: SkippedSkill[];
 }
 
 /**
@@ -69,23 +81,51 @@ export async function resolveSkills(
 /**
  * Resolve skills and generate provider file outputs without any disk I/O.
  * Shared pipeline used by sync (writes) and preview (diffs).
+ *
+ * Skills whose `conditions` aren't met for the current project are filtered
+ * out (unless `force=true`) and reported via `skipped`.
+ *
+ * Each provider is generated inside its own try/catch so one failing driver
+ * doesn't block the rest; the failure is reported via `outputs[i].error`.
  */
 async function generateOutputs(
   projectPath: string,
   variables: Record<string, string>,
   providerFilter?: string,
+  force = false,
 ): Promise<{
   outputs: SyncResult[];
   manifest: Manifest;
   skills: ResolvedSkill[];
+  skipped: SkippedSkill[];
 }> {
-  const { skills, manifest } = await resolveSkills(projectPath, variables);
+  const { skills: allSkills, manifest } = await resolveSkills(projectPath, variables);
+
+  const skills: ResolvedSkill[] = [];
+  const skipped: SkippedSkill[] = [];
+  for (const skill of allSkills) {
+    if (force || !skill.conditions) {
+      skills.push(skill);
+      continue;
+    }
+    const result = await evaluateConditions(skill.conditions, projectPath);
+    if (result.passed) {
+      skills.push(skill);
+    } else {
+      skipped.push({ slug: skill.slug, reason: result.reason });
+    }
+  }
+
   const providers = providerFilter ? [providerFilter] : manifest.providers;
-  const outputs = providers.map((provider) => ({
-    provider,
-    files: getDriver(provider).generate(skills, projectPath),
-  }));
-  return { outputs, manifest, skills };
+  const outputs: SyncResult[] = providers.map((provider) => {
+    try {
+      return { provider, files: getDriver(provider).generate(skills, projectPath) };
+    } catch (err) {
+      return { provider, files: [], error: (err as Error).message };
+    }
+  });
+
+  return { outputs, manifest, skills, skipped };
 }
 
 export interface PreviewEntry {
@@ -96,28 +136,51 @@ export interface PreviewEntry {
   status: 'added' | 'modified' | 'unchanged';
 }
 
+export interface SyncOptions {
+  force?: boolean;
+}
+
 /**
  * Sync skills to all enabled providers.
+ *
+ * Returns { results, skipped } where `results[i].error` is set if that
+ * provider's driver threw during generation — other providers still sync.
  */
 export async function sync(
   projectPath: string,
   variables: Record<string, string> = {},
   providerFilter?: string,
-): Promise<SyncResult[]> {
-  const { outputs, manifest, skills } = await generateOutputs(projectPath, variables, providerFilter);
+  options: SyncOptions = {},
+): Promise<SyncRunResult> {
+  const { outputs, manifest, skills, skipped } = await generateOutputs(
+    projectPath,
+    variables,
+    providerFilter,
+    options.force,
+  );
 
-  for (const { files } of outputs) {
+  for (const { files, error } of outputs) {
+    if (error) continue;
     for (const file of files) {
       await fs.mkdir(path.dirname(file.path), { recursive: true });
       await fs.writeFile(file.path, file.content);
     }
   }
 
-  manifest.synced_at = new Date().toISOString();
-  manifest.skills = skills.map((s) => s.slug);
-  await writeManifest(projectPath, manifest);
+  const anyFailed = outputs.some((o) => o.error);
+  if (!anyFailed) {
+    manifest.synced_at = new Date().toISOString();
+    manifest.skills = skills.map((s) => s.slug);
+    await writeManifest(projectPath, manifest);
+  }
 
-  return outputs;
+  return { results: outputs, skipped };
+}
+
+export interface PreviewRunResult {
+  results: PreviewEntry[];
+  skipped: SkippedSkill[];
+  errors: Array<{ provider: string; error: string }>;
 }
 
 /**
@@ -127,11 +190,17 @@ export async function preview(
   projectPath: string,
   variables: Record<string, string> = {},
   providerFilter?: string,
-): Promise<PreviewEntry[]> {
-  const { outputs } = await generateOutputs(projectPath, variables, providerFilter);
+  options: SyncOptions = {},
+): Promise<PreviewRunResult> {
+  const { outputs, skipped } = await generateOutputs(projectPath, variables, providerFilter, options.force);
   const results: PreviewEntry[] = [];
+  const errors: Array<{ provider: string; error: string }> = [];
 
-  for (const { provider, files } of outputs) {
+  for (const { provider, files, error } of outputs) {
+    if (error) {
+      errors.push({ provider, error });
+      continue;
+    }
     for (const file of files) {
       let current: string | null = null;
       try {
@@ -153,5 +222,5 @@ export async function preview(
     }
   }
 
-  return results;
+  return { results, skipped, errors };
 }

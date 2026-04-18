@@ -42,12 +42,14 @@ program
   .description('Sync skills to provider config files')
   .option('-p, --provider <name>', 'Sync to a single provider')
   .option('--dry-run', 'Preview without writing')
+  .option('--force', 'Ignore skill conditions and sync all skills')
   .action(syncCommand);
 
 program
   .command('diff')
   .description('Show what sync would change')
   .option('-p, --provider <name>', 'Diff a single provider')
+  .option('--force', 'Ignore skill conditions')
   .action(diffCommand);
 
 program
