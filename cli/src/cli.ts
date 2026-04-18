@@ -13,6 +13,7 @@ import { importCommand } from './commands/import.js';
 import { testCommand } from './commands/test.js';
 import { removeCommand } from './commands/remove.js';
 import { listCommand } from './commands/list.js';
+import { providerAddCommand } from './commands/providerAdd.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const pkg = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf-8'));
@@ -87,5 +88,10 @@ program
   .description('List all skills')
   .option('--json', 'Output as JSON')
   .action(listCommand);
+
+program
+  .command('provider:add <name>')
+  .description('Scaffold a new provider plugin under .skillr/plugins/')
+  .action(providerAddCommand);
 
 program.parse();

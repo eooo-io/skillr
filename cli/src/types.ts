@@ -86,6 +86,10 @@ export interface ProviderDriver {
   generate(skills: ResolvedSkill[], projectPath: string): FileOutput[];
 }
 
+// ProviderPlugin is the public name — ProviderDriver is retained
+// for backward compatibility with existing built-in code.
+export type ProviderPlugin = ProviderDriver;
+
 export const VALID_PROVIDERS = [
   'claude',
   'cursor',

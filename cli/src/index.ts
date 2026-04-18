@@ -6,4 +6,10 @@ export { resolve as resolveTemplates, extractVariables, getMissing } from './ser
 export { lint } from './services/PromptLinter.js';
 export { scanProject, scaffoldProject, readManifest, writeManifest } from './services/ManifestService.js';
 export { sync, preview, resolveSkills } from './services/SyncService.js';
-export { getDriver, getAllDrivers, getDriverSlugs } from './drivers/index.js';
+export {
+  getDriver,
+  getAllDrivers,
+  getDriverSlugs,
+  registerDriver,
+  loadPlugins,
+} from './drivers/index.js';

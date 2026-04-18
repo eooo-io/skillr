@@ -4,7 +4,7 @@ import { scanProject, readManifest, writeManifest } from './ManifestService.js';
 import { resolve as resolveIncludes } from './SkillCompositionService.js';
 import { resolve as resolveTemplates } from './TemplateResolver.js';
 import { evaluateConditions } from './ConditionEvaluator.js';
-import { getDriver } from '../drivers/index.js';
+import { getDriver, loadPlugins } from '../drivers/index.js';
 import type { ParsedSkill, ResolvedSkill, FileOutput, Manifest } from '../types.js';
 
 export interface SyncResult {
@@ -100,6 +100,7 @@ async function generateOutputs(
   skills: ResolvedSkill[];
   skipped: SkippedSkill[];
 }> {
+  await loadPlugins(projectPath);
   const { skills: allSkills, manifest } = await resolveSkills(projectPath, variables);
 
   const skills: ResolvedSkill[] = [];
