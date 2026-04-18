@@ -13,6 +13,7 @@ function makeSkill(overrides: Partial<ResolvedSkill> = {}): ResolvedSkill {
     gotchas: null,
     tags: [],
     conditions: null,
+    supplementary_files: [],
     ...overrides,
   };
 }
@@ -166,6 +167,43 @@ describe('all single-file drivers produce consistent format', () => {
       const files = driver.generate([makeSkill({ gotchas: 'Edge case here.' })], '/project');
       expect(files[0].content).toContain('### Common Gotchas');
       expect(files[0].content).toContain('Edge case here.');
+    });
+  }
+});
+
+describe('supplementary files', () => {
+  const supplementary = [{ path: 'examples/good.md', content: 'Good example body.' }];
+
+  it('claude appends supplementary files as sections in the main file', () => {
+    const driver = getDriver('claude');
+    const files = driver.generate([makeSkill({ supplementary_files: supplementary })], '/project');
+    expect(files).toHaveLength(1);
+    expect(files[0].content).toContain('### examples/good.md');
+    expect(files[0].content).toContain('Good example body.');
+  });
+
+  for (const slug of ['copilot', 'cline', 'openai']) {
+    it(`${slug} appends supplementary files as sections`, () => {
+      const driver = getDriver(slug);
+      const files = driver.generate([makeSkill({ supplementary_files: supplementary })], '/project');
+      expect(files).toHaveLength(1);
+      expect(files[0].content).toContain('### examples/good.md');
+      expect(files[0].content).toContain('Good example body.');
+    });
+  }
+
+  for (const { slug, dir, mainExt } of [
+    { slug: 'cursor', dir: '.cursor/rules', mainExt: '.mdc' },
+    { slug: 'windsurf', dir: '.windsurf/rules', mainExt: '.md' },
+  ]) {
+    it(`${slug} writes supplementary files as companion files`, () => {
+      const driver = getDriver(slug);
+      const files = driver.generate([makeSkill({ supplementary_files: supplementary })], '/project');
+      expect(files.some((f) => f.path.endsWith(`test-skill${mainExt}`))).toBe(true);
+      const companion = files.find((f) => f.path.endsWith('examples/good.md'));
+      expect(companion).toBeDefined();
+      expect(companion!.path).toContain(`${dir}/test-skill.d/examples/good.md`);
+      expect(companion!.content).toBe('Good example body.');
     });
   }
 });

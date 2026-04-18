@@ -1,6 +1,7 @@
 import path from 'node:path';
 import yaml from 'js-yaml';
 import type { ProviderDriver, ResolvedSkill, FileOutput } from '../types.js';
+import { companionFiles } from './supplementary.js';
 
 export const cursorDriver: ProviderDriver = {
   name: 'Cursor',
@@ -36,6 +37,8 @@ export const cursorDriver: ProviderDriver = {
         path: path.join(dir, `${skill.slug}.mdc`),
         content,
       });
+
+      files.push(...companionFiles(skill, dir));
     }
 
     return files;

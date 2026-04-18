@@ -1,5 +1,6 @@
 import path from 'node:path';
 import type { ProviderDriver, ResolvedSkill, FileOutput } from '../types.js';
+import { companionFiles } from './supplementary.js';
 
 export const windsurfDriver: ProviderDriver = {
   name: 'Windsurf',
@@ -20,6 +21,8 @@ export const windsurfDriver: ProviderDriver = {
         path: path.join(dir, `${skill.slug}.md`),
         content,
       });
+
+      files.push(...companionFiles(skill, dir));
     }
 
     return files;

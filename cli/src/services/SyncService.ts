@@ -72,6 +72,7 @@ export async function resolveSkills(
       gotchas: skill.frontmatter.gotchas ?? null,
       tags: skill.frontmatter.tags ?? [],
       conditions: skill.frontmatter.conditions ?? null,
+      supplementary_files: skill.frontmatter.supplementary_files ?? [],
     });
   }
 

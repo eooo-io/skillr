@@ -53,6 +53,7 @@ export interface ResolvedSkill {
   gotchas: string | null;
   tags: string[];
   conditions: SkillConditions | null;
+  supplementary_files: SupplementaryFile[];
 }
 
 export interface FileOutput {

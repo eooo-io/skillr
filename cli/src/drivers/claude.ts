@@ -1,5 +1,6 @@
 import path from 'node:path';
 import type { ProviderDriver, ResolvedSkill, FileOutput } from '../types.js';
+import { appendSupplementary } from './supplementary.js';
 
 export const claudeDriver: ProviderDriver = {
   name: 'Claude',
@@ -22,7 +23,7 @@ export const claudeDriver: ProviderDriver = {
         output += `### Common Gotchas\n\n${skill.gotchas}\n\n`;
       }
 
-      output += '---\n\n';
+      output = appendSupplementary(output, skill.supplementary_files) + '\n---\n\n';
     }
 
     return [{

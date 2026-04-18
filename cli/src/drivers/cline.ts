@@ -1,5 +1,6 @@
 import path from 'node:path';
 import type { ProviderDriver, ResolvedSkill, FileOutput } from '../types.js';
+import { appendSupplementary } from './supplementary.js';
 
 export const clineDriver: ProviderDriver = {
   name: 'Cline',
@@ -14,7 +15,7 @@ export const clineDriver: ProviderDriver = {
       if (skill.gotchas) {
         output += `### Common Gotchas\n\n${skill.gotchas}\n\n`;
       }
-      output += '---\n\n';
+      output = appendSupplementary(output, skill.supplementary_files) + '\n---\n\n';
     }
 
     return [{
