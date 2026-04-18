@@ -11,6 +11,8 @@ import { diffCommand } from './commands/diff.js';
 import { lintCommand } from './commands/lint.js';
 import { importCommand } from './commands/import.js';
 import { testCommand } from './commands/test.js';
+import { removeCommand } from './commands/remove.js';
+import { listCommand } from './commands/list.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const pkg = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf-8'));
@@ -69,5 +71,19 @@ program
   .option('-m, --message <msg>', 'User message to send')
   .option('--model <model>', 'Override the skill model')
   .action(testCommand);
+
+program
+  .command('remove <slug>')
+  .alias('rm')
+  .description('Remove a skill')
+  .option('--sync', 'Run sync after removal')
+  .action(removeCommand);
+
+program
+  .command('list')
+  .alias('ls')
+  .description('List all skills')
+  .option('--json', 'Output as JSON')
+  .action(listCommand);
 
 program.parse();
