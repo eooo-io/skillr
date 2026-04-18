@@ -19,13 +19,18 @@ function makeSkill(overrides: Partial<ResolvedSkill> = {}): ResolvedSkill {
 }
 
 describe('driver registry', () => {
-  it('returns all 6 drivers', () => {
-    expect(getAllDrivers()).toHaveLength(6);
+  it('returns all 10 drivers', () => {
+    expect(getAllDrivers()).toHaveLength(10);
   });
 
-  it('returns all 6 slugs', () => {
+  it('returns all 10 slugs', () => {
     const slugs = getDriverSlugs();
-    expect(slugs).toEqual(expect.arrayContaining(['claude', 'cursor', 'copilot', 'windsurf', 'cline', 'openai']));
+    expect(slugs).toEqual(
+      expect.arrayContaining([
+        'claude', 'cursor', 'copilot', 'windsurf', 'cline', 'openai',
+        'zed', 'aider', 'continue', 'junie',
+      ]),
+    );
   });
 
   it('throws for unknown provider', () => {
@@ -169,6 +174,56 @@ describe('all single-file drivers produce consistent format', () => {
       expect(files[0].content).toContain('Edge case here.');
     });
   }
+});
+
+describe('zed driver', () => {
+  const driver = getDriver('zed');
+  it('writes to .rules', () => {
+    const files = driver.generate([makeSkill()], '/project');
+    expect(files).toHaveLength(1);
+    expect(files[0].path).toContain('.rules');
+    expect(files[0].content).toContain('## Test Skill');
+  });
+});
+
+describe('aider driver', () => {
+  const driver = getDriver('aider');
+  it('writes CONVENTIONS.md and .aider.conf.yml', () => {
+    const files = driver.generate([makeSkill()], '/project');
+    expect(files).toHaveLength(2);
+    expect(files.some((f) => f.path.endsWith('CONVENTIONS.md'))).toBe(true);
+    expect(files.some((f) => f.path.endsWith('.aider.conf.yml'))).toBe(true);
+    const conv = files.find((f) => f.path.endsWith('CONVENTIONS.md'))!;
+    expect(conv.content).toContain('## Test Skill');
+  });
+
+  it('aider config references CONVENTIONS.md', () => {
+    const files = driver.generate([makeSkill()], '/project');
+    const config = files.find((f) => f.path.endsWith('.aider.conf.yml'))!;
+    expect(config.content).toContain('CONVENTIONS.md');
+  });
+});
+
+describe('continue driver', () => {
+  const driver = getDriver('continue');
+  it('writes one .md file per skill under .continue/rules', () => {
+    const files = driver.generate(
+      [makeSkill({ slug: 'a' }), makeSkill({ slug: 'b', name: 'Skill B' })],
+      '/project',
+    );
+    expect(files).toHaveLength(2);
+    expect(files.every((f) => f.path.includes('.continue/rules'))).toBe(true);
+  });
+});
+
+describe('junie driver', () => {
+  const driver = getDriver('junie');
+  it('writes a single .junie/guidelines.md', () => {
+    const files = driver.generate([makeSkill()], '/project');
+    expect(files).toHaveLength(1);
+    expect(files[0].path).toContain('.junie/guidelines.md');
+    expect(files[0].content).toContain('# Project Guidelines');
+  });
 });
 
 describe('supplementary files', () => {

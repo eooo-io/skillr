@@ -5,6 +5,10 @@ import { copilotDriver } from './copilot.js';
 import { windsurfDriver } from './windsurf.js';
 import { clineDriver } from './cline.js';
 import { openaiDriver } from './openai.js';
+import { zedDriver } from './zed.js';
+import { aiderDriver } from './aider.js';
+import { continueDriver } from './continue.js';
+import { junieDriver } from './junie.js';
 
 const drivers: Record<string, ProviderDriver> = {
   claude: claudeDriver,
@@ -13,6 +17,10 @@ const drivers: Record<string, ProviderDriver> = {
   windsurf: windsurfDriver,
   cline: clineDriver,
   openai: openaiDriver,
+  zed: zedDriver,
+  aider: aiderDriver,
+  continue: continueDriver,
+  junie: junieDriver,
 };
 
 export function getDriver(slug: string): ProviderDriver {

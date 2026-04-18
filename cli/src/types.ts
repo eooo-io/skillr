@@ -86,7 +86,18 @@ export interface ProviderDriver {
   generate(skills: ResolvedSkill[], projectPath: string): FileOutput[];
 }
 
-export const VALID_PROVIDERS = ['claude', 'cursor', 'copilot', 'windsurf', 'cline', 'openai'] as const;
+export const VALID_PROVIDERS = [
+  'claude',
+  'cursor',
+  'copilot',
+  'windsurf',
+  'cline',
+  'openai',
+  'zed',
+  'aider',
+  'continue',
+  'junie',
+] as const;
 export type ProviderSlug = typeof VALID_PROVIDERS[number];
 
 export const CATEGORIES = [

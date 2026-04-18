@@ -142,6 +142,10 @@ skillr test my-skill --model gpt-4o # override the skill's model
 | **Windsurf** | `.windsurf/rules/{slug}.md` | One file per skill |
 | **Cline** | `.clinerules` | Single flat file |
 | **OpenAI** | `.openai/instructions.md` | All skills concatenated |
+| **Zed** | `.rules` | Single flat file |
+| **Aider** | `CONVENTIONS.md` + `.aider.conf.yml` | Aggregated conventions referenced by config |
+| **Continue** | `.continue/rules/{slug}.md` | One file per skill |
+| **JetBrains AI (Junie)** | `.junie/guidelines.md` | Single flat file |
 
 ## Features
 
