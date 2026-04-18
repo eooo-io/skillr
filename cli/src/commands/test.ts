@@ -4,9 +4,38 @@ import { resolve as resolveTemplates } from '../services/TemplateResolver.js';
 import type { ParsedSkill } from '../types.js';
 import * as ui from '../ui.js';
 
+type TestProvider = 'anthropic' | 'openai';
+
+/**
+ * Pick a provider using an explicit --provider, then model prefix,
+ * then env-var presence. Returns null if none can be determined.
+ */
+export function detectProvider(
+  explicit: string | undefined,
+  model: string | undefined,
+  env: NodeJS.ProcessEnv = process.env,
+): TestProvider | null {
+  if (explicit) {
+    const normalized = explicit.toLowerCase();
+    if (normalized === 'anthropic' || normalized === 'claude') return 'anthropic';
+    if (normalized === 'openai' || normalized === 'oai') return 'openai';
+    return null;
+  }
+
+  if (model) {
+    if (model.startsWith('claude') || model.startsWith('anthropic')) return 'anthropic';
+    if (model.startsWith('gpt') || model.startsWith('o1') || model.startsWith('o3')) return 'openai';
+  }
+
+  if (env.ANTHROPIC_API_KEY) return 'anthropic';
+  if (env.OPENAI_API_KEY) return 'openai';
+
+  return null;
+}
+
 export async function testCommand(
   slug: string,
-  options: { message?: string; model?: string },
+  options: { message?: string; model?: string; provider?: string },
 ): Promise<void> {
   const projectPath = process.cwd();
 
@@ -23,13 +52,11 @@ export async function testCommand(
     process.exit(1);
   }
 
-  // Resolve includes
   const skillMap = new Map<string, ParsedSkill>();
   for (const s of skills) skillMap.set(s.slug, s);
 
   let body = resolveIncludes(skill, skillMap);
 
-  // Resolve template defaults
   const vars: Record<string, string> = {};
   for (const def of skill.frontmatter.template_variables ?? []) {
     if (def.default != null) vars[def.name] = def.default;
@@ -38,20 +65,27 @@ export async function testCommand(
     body = resolveTemplates(body, vars);
   }
 
-  const model = options.model ?? skill.frontmatter.model ?? 'claude-sonnet-4-6';
-  const userMessage = options.message ?? 'Hello, please introduce yourself and explain what you can help with.';
+  const model = options.model ?? skill.frontmatter.model ?? undefined;
+  const provider = detectProvider(options.provider, model ?? undefined);
 
-  ui.thinking(`Testing "${skill.frontmatter.name}" with ${model}...`);
+  if (!provider) {
+    ui.error(
+      'Could not determine provider. Pass --provider anthropic|openai, specify a model, or set ANTHROPIC_API_KEY / OPENAI_API_KEY.',
+    );
+    process.exit(1);
+  }
+
+  const resolvedModel = model ?? (provider === 'anthropic' ? 'claude-sonnet-4-6' : 'gpt-4o');
+  const userMessage =
+    options.message ?? 'Hello, please introduce yourself and explain what you can help with.';
+
+  ui.thinking(`Testing "${skill.frontmatter.name}" with ${resolvedModel} (${provider})...`);
   ui.blank();
 
-  // Detect provider from model name
-  if (model.startsWith('claude') || model.startsWith('anthropic')) {
-    await testWithAnthropic(body, userMessage, model);
-  } else if (model.startsWith('gpt') || model.startsWith('o1') || model.startsWith('o3')) {
-    await testWithOpenAI(body, userMessage, model);
+  if (provider === 'anthropic') {
+    await testWithAnthropic(body, userMessage, resolvedModel);
   } else {
-    ui.error(`Unsupported model: ${model}. Set ANTHROPIC_API_KEY or OPENAI_API_KEY and use a supported model.`);
-    process.exit(1);
+    await testWithOpenAI(body, userMessage, resolvedModel);
   }
 }
 

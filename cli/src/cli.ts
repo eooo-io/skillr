@@ -71,6 +71,7 @@ program
   .description('Test a skill against an LLM')
   .option('-m, --message <msg>', 'User message to send')
   .option('--model <model>', 'Override the skill model')
+  .option('--provider <name>', 'Force a provider (anthropic|openai)')
   .action(testCommand);
 
 program
