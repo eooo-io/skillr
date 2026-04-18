@@ -1,4 +1,5 @@
 import { hasSkillrDir, writeSkillFile, readManifest, writeManifest, slugify } from '../services/ManifestService.js';
+import { validateFrontmatter } from '../services/SkillFileParser.js';
 import type { SkillFrontmatter } from '../types.js';
 import * as ui from '../ui.js';
 
@@ -13,7 +14,17 @@ export async function addCommand(
     process.exit(1);
   }
 
+  if (!name?.trim()) {
+    ui.error('Skill name is required.');
+    process.exit(1);
+  }
+
   const slug = slugify(name);
+  if (!slug) {
+    ui.error(`Cannot derive a valid slug from "${name}". Use alphanumeric characters.`);
+    process.exit(1);
+  }
+
   ui.working(`Creating skill: ${name} (${slug})`);
 
   const now = new Date().toISOString();
@@ -30,6 +41,12 @@ export async function addCommand(
     created_at: now,
     updated_at: now,
   };
+
+  const errors = validateFrontmatter(frontmatter);
+  if (errors.length > 0) {
+    ui.error(`Invalid frontmatter:\n  - ${errors.join('\n  - ')}`);
+    process.exit(1);
+  }
 
   const body = `You are a helpful assistant.\n\n## Instructions\n\n- Replace this with your skill instructions\n`;
 

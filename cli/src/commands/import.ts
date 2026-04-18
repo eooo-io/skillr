@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { hasSkillrDir, writeSkillFile, readManifest, writeManifest, slugify } from '../services/ManifestService.js';
-import { parseContent } from '../services/SkillFileParser.js';
+import { parseContent, validateFrontmatter } from '../services/SkillFileParser.js';
 import type { SkillFrontmatter } from '../types.js';
 import * as ui from '../ui.js';
 
@@ -119,11 +119,18 @@ export async function importCommand(): Promise<void> {
 
   const manifest = await readManifest(projectPath);
   let imported = 0;
+  let skipped = 0;
 
   for (const skill of detected) {
-    const slug = slugify(skill.name);
+    const name = skill.name?.trim();
+    const slug = name ? slugify(name) : '';
 
-    // Skip if skill already exists
+    if (!slug) {
+      ui.info(`  Skipped: "${skill.name}" from ${skill.source} (cannot derive slug)`);
+      skipped++;
+      continue;
+    }
+
     if (manifest.skills.includes(slug)) {
       ui.info(`  Skipped: ${slug} (already exists)`);
       continue;
@@ -132,7 +139,7 @@ export async function importCommand(): Promise<void> {
     const now = new Date().toISOString();
     const frontmatter: SkillFrontmatter = {
       id: slug,
-      name: skill.name,
+      name,
       description: null,
       category: 'general',
       tags: [],
@@ -142,6 +149,13 @@ export async function importCommand(): Promise<void> {
       created_at: now,
       updated_at: now,
     };
+
+    const errors = validateFrontmatter(frontmatter);
+    if (errors.length > 0) {
+      ui.info(`  Skipped: ${slug} (${errors.join(', ')})`);
+      skipped++;
+      continue;
+    }
 
     await writeSkillFile(projectPath, frontmatter, skill.body);
     manifest.skills.push(slug);
@@ -153,5 +167,6 @@ export async function importCommand(): Promise<void> {
   await writeManifest(projectPath, manifest);
 
   ui.blank();
-  ui.success(`Imported ${imported} skill(s). Run \`skillr sync\` to sync them back.`);
+  const suffix = skipped > 0 ? ` (${skipped} skipped)` : '';
+  ui.success(`Imported ${imported} skill(s)${suffix}. Run \`skillr sync\` to sync them back.`);
 }
