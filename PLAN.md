@@ -68,17 +68,15 @@ Hardened the CLI for reliable releases. CI now gates every push/PR on CLI tests 
 
 ---
 
-## Phase 4: Feature Completeness — [v0.3.0](https://github.com/eooo-io/skillr/milestone/15)
+## Phase 4: Feature Completeness — COMPLETE (v0.3.0)
 
-**Goal:** Implement parsed-but-unused features and fill CLI command gaps.
+Filled parsed-but-unused features and CLI command gaps.
 
-| # | Issue | Status |
-|---|---|---|
-| [#95](https://github.com/eooo-io/skillr/issues/95) | Implement conditional skill rendering (`conditions` frontmatter) | |
-| [#96](https://github.com/eooo-io/skillr/issues/96) | Sync supplementary files to provider outputs | |
-| [#97](https://github.com/eooo-io/skillr/issues/97) | Handle partial sync failures gracefully | |
-| [#98](https://github.com/eooo-io/skillr/issues/98) | Add `skillr remove <slug>` command | |
-| [#99](https://github.com/eooo-io/skillr/issues/99) | Add `skillr list` command | |
+- #95 — Conditional skill rendering via ConditionEvaluator + `--force` flag
+- #96 — Supplementary files flow through to every provider (inline sections or companion files)
+- #97 — Per-provider try/catch so partial sync failures don't block others
+- #98 — `skillr remove` command
+- #99 — `skillr list` command (with `--json`)
 
 ---
 
