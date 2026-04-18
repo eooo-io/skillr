@@ -80,15 +80,11 @@ Filled parsed-but-unused features and CLI command gaps.
 
 ---
 
-## Phase 5: New Providers & DX — [v0.4.0](https://github.com/eooo-io/skillr/milestone/16)
+## Phase 5: New Providers & DX — COMPLETE (v0.4.0)
 
-**Goal:** Broaden tool coverage and improve the development workflow.
-
-| # | Issue | Status |
-|---|---|---|
-| [#100](https://github.com/eooo-io/skillr/issues/100) | Add provider drivers for Zed, Aider, Continue, JetBrains AI | |
-| [#101](https://github.com/eooo-io/skillr/issues/101) | Add `skillr sync --watch` for auto-sync on file changes | |
-| [#102](https://github.com/eooo-io/skillr/issues/102) | Improve model detection in `skillr test` command | |
+- #100 — Zed, Aider, Continue, Junie drivers (10 providers total)
+- #101 — `skillr sync --watch` with native fs.watch + debounce
+- #102 — `detectProvider()` priority chain for `skillr test`
 
 ---
 
