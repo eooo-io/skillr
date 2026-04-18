@@ -57,15 +57,14 @@ Published to npm as `@eooo/skillr` (v0.1.8).
 
 ---
 
-## Phase 3: CI/CD & Quality — [v0.2.0](https://github.com/eooo-io/skillr/milestone/14)
+## Phase 3: CI/CD & Quality — COMPLETE (v0.2.0)
 
-**Goal:** Harden the CLI for reliable releases. Gate PRs on tests and type-checking.
+Hardened the CLI for reliable releases. CI now gates every push/PR on CLI tests + build, and releases auto-publish to npm on tag push.
 
-| # | Issue | Status |
-|---|---|---|
-| [#92](https://github.com/eooo-io/skillr/issues/92) | Add CLI tests to GitHub Actions CI pipeline | |
-| [#93](https://github.com/eooo-io/skillr/issues/93) | Validate required frontmatter fields during `add` and `import` | |
-| [#94](https://github.com/eooo-io/skillr/issues/94) | Extract shared resolution logic from SyncService | |
+- #92 — CLI tests job added to CI workflow
+- #93 — `add`/`import` validate frontmatter before writing
+- #94 — Shared `generateOutputs()` extracted from SyncService
+- #105 — `npm-publish.yml` workflow publishes on `v*` tag, `.npmignore` added, sourcemaps disabled (tarball 29.4 kB → 17.3 kB)
 
 ---
 

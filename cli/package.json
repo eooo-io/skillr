@@ -1,10 +1,11 @@
 {
   "name": "@eooo/skillr",
-  "version": "0.1.7",
+  "version": "0.2.0",
   "description": "Portable AI instruction format with cross-provider sync",
   "type": "module",
   "bin": {
-    "skillr": "dist/cli.js"
+    "skillr": "dist/cli.js",
+    "skills": "dist/cli.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
