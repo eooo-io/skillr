@@ -4,7 +4,7 @@ This file orients Claude Code (and other agentic tools) when working in this rep
 
 ## Project direction
 
-Skillr is a **portable AI instruction format with cross-provider sync**. You define skills once under `.skillr/` and compile them to 10 native provider configs (Claude, Cursor, Copilot, Windsurf, Cline, OpenAI, Zed, Aider, Continue, Junie).
+Skillr is a **portable AI instruction format with cross-provider sync**. You define skills once under `.skillr/` and compile them to 11 native provider configs (Claude, Cursor, Copilot, Windsurf, Cline, OpenAI Codex, Zed, Aider, Continue, Junie, plus legacy OpenAI). The legacy `openai` driver is deprecated in favor of `codex` (which writes `AGENTS.md`) and will be removed in v1.2.0.
 
 The primary artifact is the CLI, published to npm as `@eooo/skillr`. The Laravel web app under `app/` and React UI under `ui/` are legacy from an earlier phase and are not the current focus.
 

@@ -4,7 +4,7 @@ layout: home
 hero:
   name: Skillr
   text: Portable AI instruction format
-  tagline: Write AI instructions once. Sync them to Claude, Cursor, Copilot, Windsurf, Cline, OpenAI, Zed, Aider, Continue, and JetBrains AI — from one CLI.
+  tagline: Write AI instructions once. Sync them to Claude, Cursor, Copilot, Windsurf, Cline, OpenAI Codex, Zed, Aider, Continue, and JetBrains AI — from one CLI.
   actions:
     - theme: brand
       text: CLI Quickstart
@@ -18,7 +18,7 @@ hero:
 
 features:
   - title: One source of truth
-    details: Define skills in .skillr/ once. Skillr compiles to 10 native provider configs (CLAUDE.md, .cursor/rules/, .github/copilot-instructions.md, and more).
+    details: Define skills in .skillr/ once. Skillr compiles to native provider configs (CLAUDE.md, .cursor/rules/, .github/copilot-instructions.md, AGENTS.md, and more).
     icon: 📦
   - title: Zero config churn
     details: npx @eooo/skillr init && skillr sync — two commands, no Docker, no database, no web UI. Works in any repo.

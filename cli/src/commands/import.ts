@@ -26,7 +26,10 @@ async function detectSkills(projectPath: string): Promise<DetectedSkill[]> {
   // Cline: .clinerules — split by H2
   await detectFromH2File(path.join(projectPath, '.clinerules'), 'cline', detected);
 
-  // OpenAI: .openai/instructions.md — split by H2
+  // Codex: AGENTS.md at project root — split by H2
+  await detectFromH2File(path.join(projectPath, 'AGENTS.md'), 'codex', detected);
+
+  // OpenAI (deprecated): .openai/instructions.md — split by H2
   await detectFromH2File(path.join(projectPath, '.openai', 'instructions.md'), 'openai', detected);
 
   // Cursor: .cursor/rules/*.mdc — one per file

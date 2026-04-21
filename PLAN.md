@@ -6,7 +6,7 @@
 
 ## Current Direction: CLI-First Open Source Tool
 
-Skillr is a **portable AI instruction format with cross-provider sync**. Define skills once in `.skillr/`, compile to native config files for 10 providers: Claude, Cursor, Copilot, Windsurf, Cline, OpenAI, Zed, Aider, Continue, and JetBrains AI (Junie).
+Skillr is a **portable AI instruction format with cross-provider sync**. Define skills once in `.skillr/`, compile to native config files for 11 providers: Claude, Cursor, Copilot, Windsurf, Cline, OpenAI Codex (CLI / macOS / IDE), Zed, Aider, Continue, JetBrains AI (Junie), plus the deprecated `openai` driver retained for backward compatibility until v1.2.0.
 
 The CLI is the primary artifact, published as `@eooo/skillr`. No Docker, no database, no web browser required. Install with `npx @eooo/skillr` and go.
 
@@ -88,7 +88,7 @@ CI gates every push/PR on CLI tests + build. Releases auto-publish to npm on tag
 
 ---
 
-## Future (post v1.0.0)
+## Future (post v1.1.0)
 
 Tracked in GitHub Issues:
 

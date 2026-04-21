@@ -96,6 +96,7 @@ export const VALID_PROVIDERS = [
   'copilot',
   'windsurf',
   'cline',
+  'codex',
   'openai',
   'zed',
   'aider',

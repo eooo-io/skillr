@@ -13,7 +13,7 @@
 
 ---
 
-Every AI coding tool has its own config format. Claude uses `CLAUDE.md`. Cursor uses `.cursor/rules/`. Copilot uses `.github/copilot-instructions.md`. Windsurf, Cline, OpenAI — all different.
+Every AI coding tool has its own config format. Claude uses `CLAUDE.md`. Cursor uses `.cursor/rules/`. Copilot uses `.github/copilot-instructions.md`. Codex uses `AGENTS.md`. Windsurf, Cline, Zed — all different.
 
 **Skillr** gives you one canonical format (`.skillr/`) and compiles it to all of them. No Docker, no database, no web browser. Just a CLI.
 
@@ -26,7 +26,7 @@ Every AI coding tool has its own config format. Claude uses `CLAUDE.md`. Cursor 
           ▼  skillr sync
     ┌─────┼─────┬─────┬─────┬─────┐
     ▼     ▼     ▼     ▼     ▼     ▼
- CLAUDE  .cursor  copilot  .windsurf  .clinerules  .openai
+ CLAUDE  .cursor  copilot  .windsurf  .clinerules  AGENTS
   .md    /rules   .md      /rules                  .md
 ```
 
@@ -148,7 +148,8 @@ skillr test my-skill --model gpt-4o   # override the skill's model
 | **GitHub Copilot** | `.github/copilot-instructions.md` | All skills concatenated |
 | **Windsurf** | `.windsurf/rules/{slug}.md` | One file per skill |
 | **Cline** | `.clinerules` | Single flat file |
-| **OpenAI** | `.openai/instructions.md` | All skills concatenated |
+| **OpenAI Codex** (CLI / macOS / IDE) | `AGENTS.md` | All skills concatenated at project root |
+| **OpenAI** *(deprecated, removed in v1.2.0)* | `.openai/instructions.md` | Use `codex` instead |
 | **Zed** | `.rules` | Single flat file |
 | **Aider** | `CONVENTIONS.md` + `.aider.conf.yml` | Aggregated conventions referenced by config |
 | **Continue** | `.continue/rules/{slug}.md` | One file per skill |

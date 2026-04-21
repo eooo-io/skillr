@@ -19,15 +19,15 @@ function makeSkill(overrides: Partial<ResolvedSkill> = {}): ResolvedSkill {
 }
 
 describe('driver registry', () => {
-  it('returns all 10 drivers', () => {
-    expect(getAllDrivers()).toHaveLength(10);
+  it('returns all 11 drivers', () => {
+    expect(getAllDrivers()).toHaveLength(11);
   });
 
-  it('returns all 10 slugs', () => {
+  it('returns all 11 slugs', () => {
     const slugs = getDriverSlugs();
     expect(slugs).toEqual(
       expect.arrayContaining([
-        'claude', 'cursor', 'copilot', 'windsurf', 'cline', 'openai',
+        'claude', 'cursor', 'copilot', 'windsurf', 'cline', 'codex', 'openai',
         'zed', 'aider', 'continue', 'junie',
       ]),
     );
@@ -147,7 +147,7 @@ describe('cline driver', () => {
   });
 });
 
-describe('openai driver', () => {
+describe('openai driver (deprecated)', () => {
   const driver = getDriver('openai');
 
   it('generates a single instructions.md', () => {
@@ -155,10 +155,50 @@ describe('openai driver', () => {
     expect(files).toHaveLength(1);
     expect(files[0].path).toContain('.openai/instructions.md');
   });
+
+  it('emits a deprecation header pointing at the codex provider', () => {
+    const files = driver.generate([makeSkill()], '/project');
+    expect(files[0].content).toContain('DEPRECATED');
+    expect(files[0].content).toContain('codex');
+    expect(files[0].content).toContain('AGENTS.md');
+  });
+});
+
+describe('codex driver', () => {
+  const driver = getDriver('codex');
+
+  it('generates AGENTS.md at the project root', () => {
+    const files = driver.generate([makeSkill()], '/project');
+    expect(files).toHaveLength(1);
+    expect(files[0].path).toBe('/project/AGENTS.md');
+  });
+
+  it('includes the AGENTS.md H1 heading and skill names as H2', () => {
+    const files = driver.generate([makeSkill()], '/project');
+    expect(files[0].content).toContain('# AGENTS.md');
+    expect(files[0].content).toContain('## Test Skill');
+  });
+
+  it('includes conditions as a blockquote', () => {
+    const files = driver.generate(
+      [makeSkill({ conditions: { file_patterns: ['*.ts', '*.tsx'] } })],
+      '/project',
+    );
+    expect(files[0].content).toContain('**Applies to:**');
+    expect(files[0].content).toContain('*.ts, *.tsx');
+  });
+
+  it('handles multiple skills in a single file', () => {
+    const skills = [makeSkill({ slug: 'a', name: 'Skill A' }), makeSkill({ slug: 'b', name: 'Skill B' })];
+    const files = driver.generate(skills, '/project');
+    expect(files).toHaveLength(1);
+    expect(files[0].content).toContain('## Skill A');
+    expect(files[0].content).toContain('## Skill B');
+  });
 });
 
 describe('all single-file drivers produce consistent format', () => {
-  for (const slug of ['copilot', 'cline', 'openai'] as const) {
+  for (const slug of ['copilot', 'cline', 'codex', 'openai'] as const) {
     it(`${slug} includes H2 heading, body, and separator`, () => {
       const driver = getDriver(slug);
       const files = driver.generate([makeSkill({ name: 'Fmt Test', body: 'Format body.' })], '/project');
@@ -237,7 +277,7 @@ describe('supplementary files', () => {
     expect(files[0].content).toContain('Good example body.');
   });
 
-  for (const slug of ['copilot', 'cline', 'openai']) {
+  for (const slug of ['copilot', 'cline', 'codex', 'openai']) {
     it(`${slug} appends supplementary files as sections`, () => {
       const driver = getDriver(slug);
       const files = driver.generate([makeSkill({ supplementary_files: supplementary })], '/project');

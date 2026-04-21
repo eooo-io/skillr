@@ -37,7 +37,7 @@ The file `.skillr/manifest.json` MUST exist and MUST be valid JSON conforming to
   "id": "uuid-string",
   "name": "project-name",
   "description": "",
-  "providers": ["claude", "cursor", "copilot", "windsurf", "cline", "openai"],
+  "providers": ["claude", "cursor", "copilot", "windsurf", "cline", "codex"],
   "skills": ["skill-slug-1", "skill-slug-2"],
   "created_at": "2026-03-20T10:00:00Z",
   "synced_at": "2026-03-20T10:05:00Z"
@@ -50,7 +50,7 @@ The file `.skillr/manifest.json` MUST exist and MUST be valid JSON conforming to
 | `id` | string (UUID) | MUST | Unique identifier for the project. |
 | `name` | string | MUST | Human-readable project name. |
 | `description` | string | SHOULD | Short project description. |
-| `providers` | string[] | MUST | Provider slugs to sync to. Valid values: `claude`, `cursor`, `copilot`, `windsurf`, `cline`, `openai`. |
+| `providers` | string[] | MUST | Provider slugs to sync to. Valid values: `claude`, `cursor`, `copilot`, `windsurf`, `cline`, `codex`, `openai` (deprecated), `zed`, `aider`, `continue`, `junie`. |
 | `skills` | string[] | SHOULD | Array of skill slugs present in `skills/`. |
 | `created_at` | string (ISO 8601) | SHOULD | Creation timestamp. |
 | `synced_at` | string (ISO 8601) \| null | MAY | Last sync timestamp. `null` if never synced. |

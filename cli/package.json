@@ -1,6 +1,6 @@
 {
   "name": "@eooo/skillr",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Portable AI instruction format with cross-provider sync",
   "type": "module",
   "bin": {
@@ -29,6 +29,8 @@
     "copilot",
     "windsurf",
     "cline",
+    "codex",
+    "agents-md",
     "openai",
     "sync",
     "config"

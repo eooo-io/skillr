@@ -28,7 +28,7 @@ You'll get:
 
 ```
 (^ ^)  Initialized .skillr/ for "your-project"
-      Providers: claude, cursor, copilot, windsurf, cline, openai, zed, aider, continue, junie
+      Providers: claude, cursor, copilot, windsurf, cline, codex, openai, zed, aider, continue, junie
 
       Next steps:
         skillr add "My First Skill"    Create a skill
@@ -97,7 +97,7 @@ skillr sync
       .cursor/rules/code-review-standards.mdc
 ... (one per enabled provider)
 
-(^ ^)  Synced 10 file(s) across 10 provider(s).
+(^ ^)  Synced 11 file(s) across 11 provider(s).
 ```
 
 ## 5. Keep skills in sync while editing
@@ -131,7 +131,8 @@ your-project/
 ├── .github/copilot-instructions.md
 ├── .windsurf/rules/code-review-standards.md
 ├── .clinerules
-├── .openai/instructions.md
+├── AGENTS.md                      # OpenAI Codex (CLI / macOS / IDE)
+├── .openai/instructions.md        # deprecated — removed in v1.2.0
 ├── .rules                         # Zed
 ├── CONVENTIONS.md + .aider.conf.yml
 ├── .continue/rules/code-review-standards.md

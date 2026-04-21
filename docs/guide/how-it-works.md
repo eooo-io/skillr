@@ -13,6 +13,7 @@ flowchart LR
   E --> D{Provider<br/>Drivers}
   D --> Claude[".claude/CLAUDE.md"]
   D --> Cursor[".cursor/rules/*.mdc"]
+  D --> Codex["AGENTS.md"]
   D --> Others["... 8 others"]
 ```
 
@@ -33,7 +34,7 @@ Every stage is a pure function except the first (reads) and the last (writes). T
 `ConditionEvaluator` filters out skills whose `conditions.file_patterns` or `conditions.path_prefixes` don't match the target project. A skill targeting `**/*.tsx` won't be shipped to a project with no TSX files (unless you pass `--force`).
 
 ### 5. Providers
-Each registered driver implements `generate(skills, projectPath) → FileOutput[]`. The built-in drivers output native formats for Claude, Cursor, Copilot, Windsurf, Cline, OpenAI, Zed, Aider, Continue, and Junie. Custom plugins in `.skillr/plugins/` use the same interface.
+Each registered driver implements `generate(skills, projectPath) → FileOutput[]`. The built-in drivers output native formats for Claude, Cursor, Copilot, Windsurf, Cline, OpenAI Codex (CLI / macOS / IDE), Zed, Aider, Continue, and Junie. The legacy `openai` driver is retained for backward compatibility but is deprecated — use `codex` instead. Custom plugins in `.skillr/plugins/` use the same interface.
 
 ### 6. Writer
 `sync()` writes the returned files. `preview()` compares against what's on disk and returns an added/modified/unchanged diff — that's what `skillr diff` shows.
